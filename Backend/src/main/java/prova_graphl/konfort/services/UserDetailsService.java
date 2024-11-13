@@ -35,5 +35,8 @@ public class UserDetailsService {
     public boolean checkPassword(User user, String password){
         return user.getPassword().equals(password);
     }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 652ab30 (Add login/token calls)
 }
