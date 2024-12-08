@@ -35,5 +35,8 @@ public class UserDetailsService {
     public boolean checkPassword(User user, String password){
         return user.getPassword().equals(password);
     }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 652ab30b26476558934c68c08d97c8fd3d61bddb
 }
