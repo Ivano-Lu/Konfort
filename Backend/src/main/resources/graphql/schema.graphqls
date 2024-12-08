@@ -1,0 +1,51 @@
+type Query {
+    getAnalizedDataById(id: Int!): AnalizedData
+    getUserById(id: Int!): User
+}
+
+type Mutation {
+    addAnalizedData(userId: Int!, timestamp: Int!, accelerometer: IODataInput!, magnetometer: IODataInput!): AnalizedData
+    addUser(name: String!,surname:String!, password: String!, email: String!): User
+    login(email: String!, password: String!): LoginResponse
+    refresh(refreshToken: String!): LoginResponse
+}
+
+input IODataInput {
+    x: Int!
+    y: Int!
+    z: Int!
+}
+
+type AnalizedData{
+    userId: Int!
+    timestamp: Int!
+    accelerometer: IOData!
+    magnetometer: IOData!
+}
+
+type IOData {
+    x: Int!
+    y: Int!
+    z: Int!
+}
+
+type Session{
+    accessToken: String!
+    refreshToken: String!
+}
+
+type LoginResponse{
+    token: String!
+    refreshToken: String!
+}
+
+type User{
+    id: Int!
+    name: String!
+    surname: String!
+    email: String!
+
+}
+
+
+
