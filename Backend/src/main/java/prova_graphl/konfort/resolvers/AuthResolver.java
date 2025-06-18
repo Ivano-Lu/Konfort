@@ -19,7 +19,6 @@ public class AuthResolver {
     }
 
     //controllo se l'utente esiste
-
     @MutationMapping
     public LoginResponse login (@Argument String email, @Argument String password) {
         try {
