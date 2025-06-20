@@ -17,11 +17,11 @@ class LoginViewModel: ObservableObject {
     @Published var placeholderName = "Nome utente"
     @Published var placeholderPassword = "Password"
     
-    @Published var alertText = "Inserisci nome utente e password"
+    @Published var alertText = "Username or password not valid"
     @Published var alertButtonText = "Ok"
     
-    @Published var email: String = "A"
-    @Published var password: String = "A"
+    @Published var email: String = ""
+    @Published var password: String = ""
         
     
     @Published var isAuthenticated: Bool? = nil
@@ -37,23 +37,88 @@ class LoginViewModel: ObservableObject {
     
     @Published var textLoader: String = "Caricamento..."
     //login
-        func login() {
-            isLoader = true
-            hasterminatedCallSucc = false
-            // Chiamata per accesso
-            print("Email: \(email), Password: \(password)")
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
-                        // Verifica se la password è corretta
-                if self?.email == "A" {
-                            self?.isAuthenticated = true // L'utente è autenticato
-                            self?.hasterminatedCallSucc = true
-                        } else {
-                            self?.isAuthenticated = false // Password errata
-                        }
-                self?.isLoader = false
+    func login() {
+        isLoader = true
+        hasterminatedCallSucc = false
+
+        guard let url = URL(string: "http://192.168.88.40:8080/graphql") else {
+            print("❌ URL non valido")
+            self.isLoader = false
+            return
+        }
+
+        let query = """
+        mutation login($email: String!, $password: String!) {
+            login(email: $email, password: $password) {
+                token
             }
         }
+        """
+
+        let requestBody: [String: Any] = [
+            "query": query,
+            "variables": [
+                "email": email,
+                "password": password
+            ],
+            "operationName": "login"
+        ]
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: requestBody, options: [])
+        } catch {
+            print("❌ Errore nel serializzare il body JSON: \(error)")
+            self.isLoader = false
+            return
+        }
+
+        let task = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            DispatchQueue.main.async {
+                self?.isLoader = false
+
+                if let error = error {
+                    print("❌ Errore di rete: \(error.localizedDescription)")
+                    self?.isAuthenticated = false
+                    return
+                }
+
+                guard let data = data else {
+                    print("❌ Nessun dato ricevuto")
+                    self?.isAuthenticated = false
+                    return
+                }
+
+                do {
+                    if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                        if let dataDict = json["data"] as? [String: Any],
+                           let login = dataDict["login"] as? [String: Any],
+                           let token = login["token"] as? String {
+                            print("✅ Login riuscito, token: \(token)")
+                            self?.isAuthenticated = true
+                            self?.hasterminatedCallSucc = true
+                            // Salva il token se necessario
+                        } else if let errors = json["errors"] as? [[String: Any]] {
+                            print("❌ Errore GraphQL: \(errors)")
+                            self?.isAuthenticated = false
+                        } else {
+                            print("❌ Risposta sconosciuta: \(json)")
+                            self?.isAuthenticated = false
+                        }
+                    }
+                } catch {
+                    print("❌ Errore nel parsing JSON: \(error.localizedDescription)")
+                    self?.isAuthenticated = false
+                }
+            }
+        }
+
+        task.resume()
+    }
+
     
     func tappedSignin() {
         hasTappedSignButton = true
