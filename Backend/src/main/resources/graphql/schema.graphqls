@@ -39,6 +39,7 @@ type Session{
 type LoginResponse{
     token: String!
     refreshToken: String!
+    userId: Int!
 }
 
 type User{

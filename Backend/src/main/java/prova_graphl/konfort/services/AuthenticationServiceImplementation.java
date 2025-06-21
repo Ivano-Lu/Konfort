@@ -45,7 +45,7 @@ public class AuthenticationServiceImplementation implements AuthenticationServic
         session.setRefreshToken(refreshToken);
         sessionRepository.save(session);
 
-        return new LoginResponse(accessToken, refreshToken);
+        return new LoginResponse(accessToken, refreshToken, user.getId());
     }
 
     @Override
@@ -65,7 +65,7 @@ public class AuthenticationServiceImplementation implements AuthenticationServic
                 newSession.setRefreshToken(newRefreshToken);
                 sessionRepository.save(newSession);
 
-                return new LoginResponse(newAccessToken, newRefreshToken);
+                return new LoginResponse(newAccessToken, newRefreshToken, 0L);
             }
             else {
                 throw  new RuntimeException("Refresh token already used");
