@@ -1,11 +1,17 @@
 package prova_graphl.konfort.models.dao;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 
 import java.util.List;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString(exclude = "calibrationData")
+@EqualsAndHashCode(exclude = "calibrationData")
 @Entity
 @Table (name = "Users")
 public class User {
@@ -20,4 +26,8 @@ public class User {
 
     @OneToMany(mappedBy = "user")
     private List<Session> sessions;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private CalibrationData calibrationData;
 }
