@@ -16,7 +16,7 @@ struct SignupView: View {
         
         ZStack {
             SignupContentView(
-                inputInfo: $viewModel.inputInfo,
+                viewModel: viewModel,
                 title: viewModel.title,
                 buttonPrimaryText: viewModel.signinButtonText,
                 buttonSecondaryText: viewModel.loginButtonText,

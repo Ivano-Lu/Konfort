@@ -9,93 +9,58 @@ import SwiftUI
 
 
 struct SignupContentView: View {
-    
-   
-    @State private var openView: Bool = false
-    
-    @Binding var inputInfo: [InfoFieldUIItem]
-    
+    @ObservedObject var viewModel: SigninViewModel
+
     let title: String
-    
     let buttonPrimaryText: String
     let buttonSecondaryText: String
-    
+
     let actionPrimaryButton: (() -> Void)?
     let actionSecondaryButton: (() -> Void)?
-    
+
     var body: some View {
-        
         VStack {
             Text(title)
                 .font(.largeTitle)
                 .padding(.horizontal, 28)
                 .padding(.top, 28)
                 .multilineTextAlignment(.center)
-            
+
             ScrollView {
-                ZStack {
-                    VStack {
-                        
-                        VStack {
-                            
-                            ForEach(inputInfo.indices, id: \.self) { index in
-                                CustomTextField(
-                                    title: inputInfo[index].title,
-                                    placeholder: inputInfo[index].placeholder,
-                                    isSecure: inputInfo[index].isSecure,
-                                    text: $inputInfo[index].text
-                                )
-                            }
-                          
-                                Button(action: {
-                                    actionSecondaryButton?()
-                                }) {
-                                    Text(buttonSecondaryText)
-                                        .frame(maxWidth: .infinity, alignment: .trailing)
-                                        .padding()
-                                        .foregroundColor(.white)
-                                        .underline()
-                                }
-                                
-                            
-                            
-                            Button(action: {
-                              actionPrimaryButton?()
-                            }) {
-                                Text(buttonPrimaryText)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.blue)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(5)
-                            }
-                            
-                            
-                            .fullScreenCover(isPresented: $openView, content: {
-                                SignupView()
-                            })
-                            
-                            Spacer()
-                            
-                            
-                        }
-                        .padding()
+                VStack(alignment: .leading, spacing: 16) {
+                    TextField("Nome", text: $viewModel.name)
+                    TextField("Cognome", text: $viewModel.lastName)
+                    TextField("Email", text: $viewModel.email)
+                    SecureField("Password", text: $viewModel.password)
+                    SecureField("Conferma Password", text: $viewModel.confirmPassword)
+
+                    Button(action: {
+                        actionSecondaryButton?()
+                    }) {
+                        Text(buttonSecondaryText)
+                            .frame(maxWidth: .infinity, alignment: .trailing)
+                            .padding()
+                            .foregroundColor(.blue)
+                            .underline()
                     }
-                    
-//                    if showAlert {
-//                        Color.black.opacity(0.4)
-//                            .edgesIgnoringSafeArea(.all)
-//                        
-//                        AlertView(message: alertMessage, textButton: alertButtonText) {
-//                            showAlert = false
-//                        }
-//                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-//                    }
+
+                    Button(action: {
+                        actionPrimaryButton?()
+                    }) {
+                        Text(buttonPrimaryText)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(5)
+                    }
                 }
+                .padding()
             }
         }
     }
 }
+
    
 #Preview {
     SignupView()

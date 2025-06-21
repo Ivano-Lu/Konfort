@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 
 class LoginViewModel: ObservableObject {
     @Published var title: String = "Benvenuto  in KONFORT"
@@ -36,6 +37,9 @@ class LoginViewModel: ObservableObject {
 
     
     @Published var textLoader: String = "Caricamento..."
+    
+    @ObservedObject var calibrationData = CalibrationDataStore.shared;
+
     //login
     func login() {
         isLoader = true
@@ -51,6 +55,7 @@ class LoginViewModel: ObservableObject {
         mutation login($email: String!, $password: String!) {
             login(email: $email, password: $password) {
                 token
+                userId
             }
         }
         """
@@ -94,13 +99,34 @@ class LoginViewModel: ObservableObject {
 
                 do {
                     if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                        print("📦 JSON ricevuto: \(json)") // Log completo per debug
+
                         if let dataDict = json["data"] as? [String: Any],
                            let login = dataDict["login"] as? [String: Any],
-                           let token = login["token"] as? String {
-                            print("✅ Login riuscito, token: \(token)")
+                           let token = login["token"] as? String,
+                           let userId = login["userId"] as? Int ?? (login["userId"] as? String).flatMap({ Int($0) }) {
+
+
+                            print("✅ Login riuscito, token: \(token), userId: \(userId)")
                             self?.isAuthenticated = true
                             self?.hasterminatedCallSucc = true
-                            // Salva il token se necessario
+
+                            // Esegui la richiesta per la matrice di calibrazione
+                            CalibrationService.shared.fetchCalibrationData(userId: userId) { success in
+                                DispatchQueue.main.async {
+                                    if success, let calibData = CalibrationService.shared.getCalibrationData() {
+                                        print("✅ Matrice caricata: \(calibData.matrix)")
+                                    } else {
+                                        print("❌ Errore nel caricamento dati di calibrazione")
+                                    }
+                                }
+                            }
+
+
+                            // (Opzionale) Salva token e userId localmente
+                            UserDefaults.standard.set(token, forKey: "authToken")
+                            UserDefaults.standard.set(userId, forKey: "userId")
+
                         } else if let errors = json["errors"] as? [[String: Any]] {
                             print("❌ Errore GraphQL: \(errors)")
                             self?.isAuthenticated = false
@@ -113,6 +139,7 @@ class LoginViewModel: ObservableObject {
                     print("❌ Errore nel parsing JSON: \(error.localizedDescription)")
                     self?.isAuthenticated = false
                 }
+
             }
         }
 

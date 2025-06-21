@@ -81,7 +81,7 @@ struct LoginContentView: View {
                                 SignupView()
                             } label: {
                                 Text(buttonSecondaryText)
-                                
+                                    
                                     .frame(alignment: .trailing)
                                     .padding()
                                     .foregroundColor(.white)
@@ -109,7 +109,6 @@ struct LoginContentView: View {
                                 .foregroundColor(.white)
                                 .cornerRadius(5)
                         }
-                    
                         .navigationDestination(isPresented: $openView, destination: {
                             HomeView()
                                 .navigationBarBackButtonHidden(true)

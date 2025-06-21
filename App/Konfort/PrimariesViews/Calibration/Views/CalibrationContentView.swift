@@ -8,56 +8,113 @@
 import SwiftUI
 
 struct CalibrationContentView: View {
-    
     var title = ""
     var subtitleText = ""
     var titleButton = ""
-    
+
     @Binding var coordinates: [Coordinates]
-    
+    @State private var showCalibrationCard = false
+
+    var body: some View {
+        ZStack {
+            VStack(spacing: 20) {
+                Text(title)
+                    .font(.headline)
+                    .multilineTextAlignment(.center)
+                    .padding()
+                    .background(Color.black.opacity(0.7))
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+                    .padding(.horizontal)
+
+                Text(subtitleText)
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .padding(.top)
+
+                VStack(spacing: 30) {
+                    ForEach($coordinates, id: \.id) { coordinate in
+                        CalibrationSectionView(coordinate: coordinate)
+                    }
+                }
+                .padding(.horizontal)
+
+                Button(action: {
+                    withAnimation {
+                        showCalibrationCard = true
+                    }
+                }) {
+                    Text(titleButton)
+                        .fontWeight(.medium)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.green)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+                        .padding(.horizontal)
+                }
+                .padding(.top, 30)
+            }
+            .blur(radius: showCalibrationCard ? 3 : 0)
+
+            if showCalibrationCard {
+                CalibrationCard(show: $showCalibrationCard)
+                    .transition(.move(edge: .bottom))
+                    .zIndex(1)
+            }
+        }
+        .animation(.easeInOut, value: showCalibrationCard)
+    }
+}
+
+struct CalibrationCard: View {
+    @Binding var show: Bool
+
     var body: some View {
         VStack(spacing: 20) {
-            // Header Text
-            Text(title)
-                .font(.headline)
-                .multilineTextAlignment(.center)
-                .padding()
-                .background(Color.black.opacity(0.7))
-                .foregroundColor(.white)
-                .cornerRadius(10)
-                .padding(.horizontal)
-            
-            
-            Text(subtitleText)
+            Text("🧭 Calibrazione")
                 .font(.title2)
                 .fontWeight(.bold)
                 .padding(.top)
-            
-            // Calibration Data
-            VStack(spacing: 30) {
-                ForEach($coordinates, id: \.id) { coordinate in
-                    CalibrationSectionView(coordinate: coordinate)
-                }            }
-            .padding(.horizontal)
-            
-            // Calibration Button
+
+            Text("Posizionati correttamente per iniziare la calibrazione. Mantieni la postura dritta e stabile.")
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+
             Button(action: {
-                // Action for starting calibration
+                // Logica per iniziare la calibrazione vera e propria
+                withAnimation {
+                    show = false
+                }
             }) {
-                Text(titleButton)
-                    .fontWeight(.medium)
+                Text("Inizia calibrazione")
+                    .fontWeight(.semibold)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.green)
+                    .background(Color.blue)
                     .foregroundColor(.white)
-                    .cornerRadius(8)
-                    .padding(.horizontal)
+                    .cornerRadius(12)
             }
-            .padding(.top, 30)
+            .padding(.horizontal)
+
+            Button(action: {
+                withAnimation {
+                    show = false
+                }
+            }) {
+                Text("Annulla")
+                    .foregroundColor(.red)
+            }
+            .padding(.bottom)
         }
-        .background()
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(20)
+        .shadow(radius: 20)
+        .padding()
     }
 }
+
 
 
 struct CalibrationSectionView: View {
