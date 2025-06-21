@@ -33,6 +33,7 @@ dependencies {
 	implementation("mysql:mysql-connector-java")
 	implementation ("io.jsonwebtoken:jjwt-api:0.11.5")
 	implementation("org.json:json:20210307")
+	implementation("com.vladmihalcea:hibernate-types-60:2.21.1")
 	compileOnly("org.projectlombok:lombok")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	runtimeOnly("org.postgresql:postgresql")

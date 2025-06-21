@@ -1,6 +1,7 @@
 type Query {
     getAnalizedDataById(id: Int!): AnalizedData
     getUserById(id: Int!): User
+    fetchCalibrationData(userId: ID!): CalibrationDataPayload!
 }
 
 type Mutation {
@@ -8,6 +9,7 @@ type Mutation {
     addUser(name: String!,surname:String!, password: String!, email: String!): User
     login(email: String!, password: String!): LoginResponse
     refresh(refreshToken: String!): LoginResponse
+    saveCalibrationData(input: SaveCalibrationDataInput): CalibrationDataPayload!
 }
 
 input IODataInput {
@@ -45,6 +47,24 @@ type User{
     surname: String!
     email: String!
 
+}
+
+input CalibrationDataInput {
+  matrix: [[Float]]!
+  invertedMatrix: [[Float]]!
+  determinant: Float!
+}
+
+input SaveCalibrationDataInput {
+  userId: ID!
+  calibrationData: CalibrationDataInput!
+}
+
+type CalibrationDataPayload {
+  id: ID!
+  matrix: [[Float]]!
+  invertedMatrix: [[Float]]!
+  determinant: Float!
 }
 
 
