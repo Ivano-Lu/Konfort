@@ -32,6 +32,7 @@
 		88E550252CD7F57D00A0CCCA /* MonitoringView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88E550242CD7F57D00A0CCCA /* MonitoringView.swift */; };
 		88E550292CD7F63D00A0CCCA /* CalibrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88E550282CD7F63D00A0CCCA /* CalibrationView.swift */; };
 		88E5502B2CD7F65E00A0CCCA /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88E5502A2CD7F65E00A0CCCA /* HistoryView.swift */; };
+		CC2B87BF2E2696550004E3EB /* BluetoothManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC2B87BE2E2696550004E3EB /* BluetoothManager.swift */; };
 		CC7407B02E0714C50032CCF3 /* CalibrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC7407AF2E0714C50032CCF3 /* CalibrationService.swift */; };
 		CC7407B32E07151A0032CCF3 /* CalibrationDataPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC7407B22E07151A0032CCF3 /* CalibrationDataPayload.swift */; };
 /* End PBXBuildFile section */
@@ -63,6 +64,7 @@
 		88E550242CD7F57D00A0CCCA /* MonitoringView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonitoringView.swift; sourceTree = "<group>"; };
 		88E550282CD7F63D00A0CCCA /* CalibrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalibrationView.swift; sourceTree = "<group>"; };
 		88E5502A2CD7F65E00A0CCCA /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
+		CC2B87BE2E2696550004E3EB /* BluetoothManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothManager.swift; sourceTree = "<group>"; };
 		CC7407AF2E0714C50032CCF3 /* CalibrationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalibrationService.swift; sourceTree = "<group>"; };
 		CC7407B22E07151A0032CCF3 /* CalibrationDataPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalibrationDataPayload.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -337,6 +339,7 @@
 			isa = PBXGroup;
 			children = (
 				CC7407AF2E0714C50032CCF3 /* CalibrationService.swift */,
+				CC2B87BE2E2696550004E3EB /* BluetoothManager.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -429,6 +432,7 @@
 				882AC0B12CF3821C008799AC /* CustomTextField.swift in Sources */,
 				88052B462CDD5B910092E3F1 /* HistoryContentView.swift in Sources */,
 				88052B432CDD4DB30092E3F1 /* MonitoringContentView.swift in Sources */,
+				CC2B87BF2E2696550004E3EB /* BluetoothManager.swift in Sources */,
 				88052B412CDD4D760092E3F1 /* MonitoringViewModel.swift in Sources */,
 				8843484C2CD2C0540081A9D3 /* SigninViewModel.swift in Sources */,
 				8866E9412CCE80D500E04C1C /* LoginContentView.swift in Sources */,
@@ -583,6 +587,10 @@
 				DEVELOPMENT_TEAM = 79WTUC84RR;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Konfort/Info.plist;
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Questa app utilizza il Bluetooth per comunicare con dispositivi esterni.\n";
+				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "Richiesto per la connessione al dispositivo Konfort via BLE.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Richiesto per rilevare dispositivi Bluetooth vicini.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -612,6 +620,10 @@
 				DEVELOPMENT_TEAM = 79WTUC84RR;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Konfort/Info.plist;
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Questa app utilizza il Bluetooth per comunicare con dispositivi esterni.\n";
+				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "Richiesto per la connessione al dispositivo Konfort via BLE.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Richiesto per rilevare dispositivi Bluetooth vicini.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

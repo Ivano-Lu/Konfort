@@ -45,7 +45,7 @@ class LoginViewModel: ObservableObject {
         isLoader = true
         hasterminatedCallSucc = false
 
-        guard let url = URL(string: "http://192.168.88.40:8080/graphql") else {
+        guard let url = URL(string: "http://172.20.10.10:8080/graphql") else {
             print("❌ URL non valido")
             self.isLoader = false
             return
