@@ -133,7 +133,7 @@ class SigninViewModel: ObservableObject {
             "operationName": "AddUser"
         ]
 
-        guard let url = URL(string: "http://192.168.88.40:8080/graphql"),
+        guard let url = URL(string: "http://172.20.10.10:8080/graphql"),
               let httpBody = try? JSONSerialization.data(withJSONObject: requestBody, options: []) else {
             print("❌ URL o body invalido")
             isLoader = false
@@ -226,7 +226,7 @@ class SigninViewModel: ObservableObject {
             "operationName": "Login"
         ]
 
-        guard let url = URL(string: "http://192.168.88.40:8080/graphql"),
+        guard let url = URL(string: "http://172.20.10.10:8080/graphql"),
               let httpBody = try? JSONSerialization.data(withJSONObject: requestBody, options: []) else {
             print("❌ URL o body invalido (login)")
             return

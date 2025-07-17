@@ -12,41 +12,131 @@ struct MonitoringContentView: View {
     @Binding var sliderValue: Double
     @Binding var state: StateMonitoring
     @Binding var subInfo: String
+    @Binding var isCalibrated: Bool
+    @Binding var connectionStatus: String
+    @Binding var lastUpdateTime: Date
+    @Binding var dataReceivedCount: Int
     let numberOfDots: Int = 40
     
     var body: some View {
-        VStack {
-            Text("\(state.rawValue)")
-                .font(.title)
-                .padding()
-                .foregroundStyle(state.color)
-            
-            ZStack {
-                ForEach(0..<numberOfDots) { index in
-                    let angle = Angle(degrees: -180 + (Double(index) / Double(numberOfDots)) * 180)
-                    let x = cos(angle.radians) * 90
-                    let y = sin(angle.radians) * 90
-                    
+        VStack(spacing: 20) {
+            // Connection status and data info
+            VStack(spacing: 8) {
+                HStack {
                     Circle()
-                        .frame(width: 5, height: 5)
-                        .foregroundColor(.blue)
-                        .position(x: 100 + CGFloat(x), y: 100 + CGFloat(y))
-                        .opacity(sliderValue >= Double(index) * (100 / Double(numberOfDots)) ? 1 : 0)
+                        .fill(connectionStatus == "Connected" ? Color.green : Color.red)
+                        .frame(width: 12, height: 12)
+                    Text(connectionStatus)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
+                if isCalibrated && connectionStatus == "Connected" {
+                    HStack {
+                        Image(systemName: "antenna.radiowaves.left.and.right")
+                            .foregroundColor(.blue)
+                        Text("Data received: \(dataReceivedCount) samples")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
                     
-                    Text("\(Int(sliderValue))°")
-                    
-                        .font(.title)
-                        .padding()
+                    let timeSinceUpdate = Date().timeIntervalSince(lastUpdateTime)
+                    if timeSinceUpdate < 3.0 {
+                        HStack {
+                            Image(systemName: "clock.fill")
+                                .foregroundColor(.green)
+                            Text("Real-time monitoring active")
+                                .font(.caption2)
+                                .foregroundColor(.green)
+                        }
+                    } else {
+                        HStack {
+                            Image(systemName: "clock")
+                                .foregroundColor(.orange)
+                            Text("Waiting for data...")
+                                .font(.caption2)
+                                .foregroundColor(.orange)
+                        }
+                    }
                 }
             }
-            .frame(width: 200, height: 200)
-            .padding()
+            .padding(.top)
             
-            Text(subInfo)
-                .font(.body)
-                .foregroundColor(.gray)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 20)
+            if isCalibrated {
+                // Calibrated state - show posture monitoring
+                VStack(spacing: 15) {
+                    Text("\(state.rawValue)")
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .foregroundStyle(state.color)
+                    
+                    ZStack {
+                        // Background circle
+                        Circle()
+                            .stroke(Color.gray.opacity(0.3), lineWidth: 8)
+                            .frame(width: 200, height: 200)
+                        
+                        // Progress circle
+                        Circle()
+                            .trim(from: 0, to: sliderValue / 100)
+                            .stroke(state.color, style: StrokeStyle(lineWidth: 8, lineCap: .round))
+                            .frame(width: 200, height: 200)
+                            .rotationEffect(.degrees(-90))
+                            .animation(.easeInOut(duration: 0.3), value: sliderValue)
+                        
+                        // Center text
+                        VStack {
+                            Text("\(Int(sliderValue))%")
+                                .font(.system(size: 32, weight: .bold))
+                                .foregroundColor(state.color)
+                            
+                            Text("Posture Score")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .padding()
+                    
+                    Text(subInfo)
+                        .font(.body)
+                        .foregroundColor(.primary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 20)
+                        .animation(.easeInOut(duration: 0.3), value: subInfo)
+                }
+            } else {
+                // Uncalibrated state - show calibration prompt
+                VStack(spacing: 20) {
+                    Image(systemName: "exclamationmark.triangle")
+                        .font(.system(size: 60))
+                        .foregroundColor(.orange)
+                    
+                    Text("Device Not Calibrated")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primary)
+                    
+                    Text("Please calibrate your device first to start posture monitoring.")
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 20)
+                    
+                    Button(action: {
+                        // Navigate to calibration
+                        // This will be handled by the parent view
+                    }) {
+                        Text("Go to Calibration")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .padding()
+                            .background(Color.blue)
+                            .cornerRadius(10)
+                    }
+                    .padding(.top)
+                }
+                .padding()
+            }
         }
     }
 }

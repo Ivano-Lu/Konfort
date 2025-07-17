@@ -14,6 +14,7 @@ struct CalibrationContentView: View {
 
     @Binding var coordinates: [Coordinates]
     @State private var showCalibrationCard = false
+    @ObservedObject var viewModel: CalibrationViewModel
 
     var body: some View {
         ZStack {
@@ -27,9 +28,10 @@ struct CalibrationContentView: View {
                     .cornerRadius(10)
                     .padding(.horizontal)
 
-                Text(subtitleText)
+                Text(viewModel.hasCalibrationData() ? subtitleText : "No previous calibration data available")
                     .font(.title2)
                     .fontWeight(.bold)
+                    .foregroundColor(viewModel.hasCalibrationData() ? .primary : .orange)
                     .padding(.top)
 
                 VStack(spacing: 30) {
@@ -38,6 +40,39 @@ struct CalibrationContentView: View {
                     }
                 }
                 .padding(.horizontal)
+                
+                // Connection warning banner
+                if !viewModel.bleManager.getConnectionStatus() {
+                    VStack(spacing: 8) {
+                        HStack {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundColor(.orange)
+                            Text("Connection Warning")
+                                .font(.headline)
+                                .foregroundColor(.orange)
+                        }
+                        
+                        Text("Device is not connected. Please ensure:")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("• Device is turned on and nearby")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Text("• Bluetooth is enabled")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Text("• No interference from other devices")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .padding()
+                    .background(Color.orange.opacity(0.1))
+                    .cornerRadius(8)
+                    .padding(.horizontal)
+                }
 
                 Button(action: {
                     withAnimation {
@@ -54,11 +89,41 @@ struct CalibrationContentView: View {
                         .padding(.horizontal)
                 }
                 .padding(.top, 30)
+                
+                // Debug button
+                Button(action: {
+                    viewModel.testBLEDataReception()
+                }) {
+                    Text("🔍 Test BLE Data")
+                        .fontWeight(.medium)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.orange)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+                        .padding(.horizontal)
+                }
+                .padding(.top, 10)
+                
+                // System test button
+                Button(action: {
+                    viewModel.runComprehensiveTest()
+                }) {
+                    Text("🧪 Test Calibration System")
+                        .fontWeight(.medium)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.purple)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+                        .padding(.horizontal)
+                }
+                .padding(.top, 10)
             }
             .blur(radius: showCalibrationCard ? 3 : 0)
 
             if showCalibrationCard {
-                CalibrationCard(show: $showCalibrationCard)
+                CalibrationCard(show: $showCalibrationCard, viewModel: viewModel)
                     .transition(.move(edge: .bottom))
                     .zIndex(1)
             }
@@ -69,6 +134,7 @@ struct CalibrationContentView: View {
 
 struct CalibrationCard: View {
     @Binding var show: Bool
+    @ObservedObject var viewModel: CalibrationViewModel
 
     enum CalibrationPhase {
         case intro
@@ -84,7 +150,6 @@ struct CalibrationCard: View {
         "Well done! Take a moment before the next one.",
         "Well done! we saved your calibration into the cloud"
     ]
-
 
     struct PositionInstruction {
         let title: String
@@ -141,6 +206,28 @@ struct CalibrationCard: View {
                         Text("Calibrating... \(timerValue)s")
                             .font(.title2)
                             .foregroundColor(.green)
+                        
+                        // Show calibration status
+                        if !viewModel.calibrationStatus.isEmpty {
+                            Text(viewModel.calibrationStatus)
+                                .font(.caption)
+                                .foregroundColor(.blue)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal)
+                        }
+                        
+                        // Show collection progress
+                        let progress = viewModel.getCollectionProgress()
+                        if progress.isCollecting {
+                            VStack(spacing: 5) {
+                                Text("📊 Collecting data...")
+                                    .font(.caption)
+                                    .foregroundColor(.orange)
+                                Text("Acc: \(progress.accCount) | Mag: \(progress.magCount)")
+                                    .font(.caption2)
+                                    .foregroundColor(.gray)
+                            }
+                        }
                     }
 
                 case .transitionMessage(let index):
@@ -160,13 +247,20 @@ struct CalibrationCard: View {
                         .buttonStyle(PrimaryButtonStyle())
                     }
 
-
                 case .done:
                     VStack(spacing: 10) {
                         Text("✅ Calibration complete!")
                             .font(.title3)
                             .fontWeight(.bold)
                         Text("You can now proceed.")
+                        
+                        if !viewModel.calibrationStatus.isEmpty {
+                            Text(viewModel.calibrationStatus)
+                                .font(.caption)
+                                .foregroundColor(.green)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal)
+                        }
                     }
                 }
             }
@@ -217,6 +311,19 @@ struct CalibrationCard: View {
 
     // MARK: - Main functions
 
+    private func startCalibration(for index: Int) {
+        phase = .calibrating(index)
+        
+        // Start data collection only during actual calibration phase
+        viewModel.startPositionCalibration()
+        
+        startTimer(duration: calibrationDuration) {
+            // Stop data collection when calibration phase ends
+            viewModel.stopPositionCalibration()
+            phase = .transitionMessage(index)
+        }
+    }
+    
     private func startPreparation(for index: Int) {
         currentPosition = index
         phase = .preparation(index)
@@ -224,16 +331,6 @@ struct CalibrationCard: View {
             startCalibration(for: index)
         }
     }
-
-    private func startCalibration(for index: Int) {
-        phase = .calibrating(index)
-        // 👉 Start data collection here
-        startTimer(duration: calibrationDuration) {
-            // 👉 Stop data collection here
-            phase = .transitionMessage(index)
-        }
-    }
-
 
     private func startTimer(duration: Int, completion: @escaping () -> Void) {
         timer?.invalidate()
@@ -250,12 +347,11 @@ struct CalibrationCard: View {
 
     private func cancelCalibration() {
         timer?.invalidate()
+        viewModel.isCalibrating = false
         show = false
-        // ➕ Reset states if needed
+        // Reset states if needed
     }
 }
-
-
 
 struct CalibrationSectionView: View {
     @Binding var coordinate: Coordinates
@@ -292,6 +388,7 @@ struct CalibrationAxisView: View {
         }
     }
 }
+
 struct PrimaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label

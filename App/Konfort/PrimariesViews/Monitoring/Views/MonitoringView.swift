@@ -17,7 +17,11 @@ struct MonitoringView: View {
         MonitoringContentView(
             sliderValue: $viewModel.sliderValue,
             state: $viewModel.state, 
-            subInfo: $viewModel.description)
+            subInfo: $viewModel.description,
+            isCalibrated: $viewModel.isCalibrated,
+            connectionStatus: $viewModel.connectionStatus,
+            lastUpdateTime: $viewModel.lastUpdateTime,
+            dataReceivedCount: $viewModel.dataReceivedCount)
     }
 }
 

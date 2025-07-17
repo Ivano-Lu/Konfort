@@ -15,7 +15,6 @@ struct LoginContentView: View {
     @State private var showAlert: Bool = false
     
     @Binding var openView: Bool
-    @StateObject private var bluetoothManager = BluetoothManager()
     
     let title: String
     let firstText: String
@@ -38,18 +37,6 @@ struct LoginContentView: View {
             ZStack {
                 VStack {
                     
-                    VStack(spacing: 20) {
-                                Text("Dati da Arduino:")
-                                    .font(.headline)
-
-                                ScrollView {
-                                    Text(bluetoothManager.receivedText)
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                        .padding()
-                                        .background(Color.gray.opacity(0.1))
-                                        .cornerRadius(8)
-                                }
-                            }
                     Text(title)
                         .font(.largeTitle)
                         .padding(.horizontal, 28)

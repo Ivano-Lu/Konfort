@@ -16,7 +16,8 @@ struct CalibrationView: View {
             title: viewModel.title,
             subtitleText: viewModel.subtitle,
             titleButton: viewModel.titleButton,
-            coordinates: $viewModel.coordinates)
+            coordinates: $viewModel.coordinates,
+            viewModel: viewModel)
     }
 }
 
