@@ -35,89 +35,94 @@ struct LoginContentView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                VStack {
+                // Dark background
+                Color(red: 0.1, green: 0.1, blue: 0.12)
+                    .ignoresSafeArea()
+                
+                VStack(spacing: 40) {
+                    Spacer()
                     
-                    Text(title)
-                        .font(.largeTitle)
-                        .padding(.horizontal, 28)
-                        .padding(.top, 28)
-                        .multilineTextAlignment(.center)
-                    
-                    VStack(alignment: .leading) {
+                    // Welcome section
+                    VStack(spacing: 8) {
+                        Text("WELCOME TO")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(.white)
                         
-                        Text(firstText)
-                            .font(.callout)
+                        Text("KONFORT")
+                            .font(.system(size: 36, weight: .bold))
+                            .foregroundColor(Color(red: 0.4, green: 0.9, blue: 0.7)) // Mint green
                         
-                        TextField(firstPlaceHolder, text: $firstInputText)
-                            .padding()
-                            .background(Color(.secondarySystemBackground))
-                            .cornerRadius(5)
-                            .autocapitalization(.none)
-                            .padding(.bottom, 22)
-                        
-                        Text(secondText)
-                            .font(.callout)
-                        SecureField(secondPlaceHolder, text: $secondInputText)
-                            .padding()
-                            .background(Color(.secondarySystemBackground))
-                            .cornerRadius(5)
-                        
-                        
-                        HStack {
-                            
-//                            Button(buttonSecondaryText) {
-//                                actionSecondaryButton?()
-//                            }
-//                            .frame(alignment: .trailing)
-//                            .padding()
-//                            .foregroundColor(.white)
-//                            .underline()
-                            
-                            
-                            
-                            // VEDERE SE SI PUO FARE MEGLIO
-                            NavigationLink {
-                                SignupView()
-                            } label: {
-                                Text(buttonSecondaryText)
-                                    
-                                    .frame(alignment: .trailing)
-                                    .padding()
-                                    .foregroundColor(.white)
-                                    .underline()
-                            }
-                        }
-                        .frame(maxWidth: .infinity, alignment: .trailing)
-                        .padding(.top, 20)
-                        
-                        
-                        Button(action: {
-                            
-//                            if firstInputText.isEmpty || secondInputText.isEmpty {
-//                                //showAlert = true
-//                            } else {
-//                              //  showAlert = false
-//                            }
-                            actionPrimaryButton?()
-                          //  openView = !showAlert
-                        }) {
-                            Text(buttonPrimaryText)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.blue)
-                                .foregroundColor(.white)
-                                .cornerRadius(5)
-                        }
-                        .navigationDestination(isPresented: $openView, destination: {
-                            HomeView()
-                                .navigationBarBackButtonHidden(true)
-                        })
-                        
-                        Spacer()
-                        
-                        
+                        Text("Stay aligned!")
+                            .font(.system(size: 16, weight: .medium))
+                            .italic()
+                            .foregroundColor(.gray)
                     }
-                    .padding()
+                    
+                    // Input fields section
+                    VStack(alignment: .leading, spacing: 24) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(firstText)
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(.white)
+                            
+                            TextField(firstPlaceHolder, text: $firstInputText)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 14)
+                                .background(Color(red: 0.15, green: 0.15, blue: 0.17))
+                                .cornerRadius(8)
+                                .foregroundColor(.white)
+                                .autocapitalization(.none)
+                                .disableAutocorrection(true)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(secondText)
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(.white)
+                            
+                            SecureField(secondPlaceHolder, text: $secondInputText)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 14)
+                                .background(Color(red: 0.15, green: 0.15, blue: 0.17))
+                                .cornerRadius(8)
+                                .foregroundColor(.white)
+                        }
+                    }
+                    .padding(.horizontal, 32)
+                    
+                    // Login button
+                    Button(action: {
+                        actionPrimaryButton?()
+                    }) {
+                        Text(buttonPrimaryText.uppercased())
+                            .font(.system(size: 16, weight: .semibold))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(Color(red: 0.4, green: 0.9, blue: 0.7)) // Mint green
+                            .foregroundColor(.white)
+                            .cornerRadius(8)
+                    }
+                    .padding(.horizontal, 32)
+                    .navigationDestination(isPresented: $openView, destination: {
+                        HomeView()
+                            .navigationBarBackButtonHidden(true)
+                    })
+                    
+                    // Sign up link
+                    HStack {
+                        Spacer()
+                        NavigationLink {
+                            SignupView()
+                        } label: {
+                            Text(buttonSecondaryText)
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.white)
+                                .underline()
+                        }
+                        Spacer()
+                    }
+                    
+                    Spacer()
                 }
                 
                 if showAlert {
