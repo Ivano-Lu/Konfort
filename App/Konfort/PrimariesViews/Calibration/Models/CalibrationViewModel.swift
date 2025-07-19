@@ -351,7 +351,7 @@ class CalibrationViewModel: ObservableObject {
             self?.updateCoordinatesFromCalibration()
         }
         
-        // Save to backend (assuming user ID 1 for now)
+        // Save to backend (assuming user ID 1 for now) // todo -> don't hardcode user id
         calibrationService.saveCalibrationData(accCalibration: accCalibration, magCalibration: magCalibration, userId: 1) { [weak self] (success: Bool) in
             DispatchQueue.main.async {
                 if success {

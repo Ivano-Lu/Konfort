@@ -18,131 +18,113 @@ struct MonitoringContentView: View {
     @Binding var dataReceivedCount: Int
     let numberOfDots: Int = 40
     
+    @ObservedObject var homeViewModel: HomeViewModel
+    
     var body: some View {
-        VStack(spacing: 20) {
-            // Connection status and data info
-            VStack(spacing: 8) {
-                HStack {
-                    Circle()
-                        .fill(connectionStatus == "Connected" ? Color.green : Color.red)
-                        .frame(width: 12, height: 12)
-                    Text(connectionStatus)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                
-                if isCalibrated && connectionStatus == "Connected" {
-                    HStack {
-                        Image(systemName: "antenna.radiowaves.left.and.right")
-                            .foregroundColor(.blue)
-                        Text("Data received: \(dataReceivedCount) samples")
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    let timeSinceUpdate = Date().timeIntervalSince(lastUpdateTime)
-                    if timeSinceUpdate < 3.0 {
-                        HStack {
-                            Image(systemName: "clock.fill")
-                                .foregroundColor(.green)
-                            Text("Real-time monitoring active")
-                                .font(.caption2)
-                                .foregroundColor(.green)
-                        }
-                    } else {
-                        HStack {
-                            Image(systemName: "clock")
-                                .foregroundColor(.orange)
-                            Text("Waiting for data...")
-                                .font(.caption2)
-                                .foregroundColor(.orange)
-                        }
-                    }
-                }
-            }
-            .padding(.top)
-            
+        VStack(spacing: 0) {
             if isCalibrated {
                 // Calibrated state - show posture monitoring
-                VStack(spacing: 15) {
-                    Text("\(state.rawValue)")
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .foregroundStyle(state.color)
-                    
-                    ZStack {
-                        // Background circle
-                        Circle()
-                            .stroke(Color.gray.opacity(0.3), lineWidth: 8)
-                            .frame(width: 200, height: 200)
+                VStack(spacing: 0) {
+                    // Main content card
+                    VStack(spacing: 32) {
+                        // Status text
+                        Text(getStatusText())
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundColor(Color(red: 0.4, green: 0.9, blue: 0.7)) // Mint green
                         
-                        // Progress circle
-                        Circle()
-                            .trim(from: 0, to: sliderValue / 100)
-                            .stroke(state.color, style: StrokeStyle(lineWidth: 8, lineCap: .round))
-                            .frame(width: 200, height: 200)
-                            .rotationEffect(.degrees(-90))
-                            .animation(.easeInOut(duration: 0.3), value: sliderValue)
-                        
-                        // Center text
-                        VStack {
-                            Text("\(Int(sliderValue))%")
-                                .font(.system(size: 32, weight: .bold))
-                                .foregroundColor(state.color)
+                        // Gauge visualization
+                        ZStack {
+                            // Background semi-circle
+                            Circle()
+                                .trim(from: 0.5, to: 1.0)
+                                .stroke(Color(red: 0.15, green: 0.15, blue: 0.17), lineWidth: 12)
+                                .frame(width: 200, height: 200)
+                                .rotationEffect(.degrees(180))
                             
-                            Text("Posture Score")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                            // Progress semi-circle
+                            Circle()
+                                .trim(from: 0.5, to: 0.5 + (sliderValue / 100) * 0.5)
+                                .stroke(Color(red: 0.4, green: 0.9, blue: 0.7), style: StrokeStyle(lineWidth: 12, lineCap: .round))
+                                .frame(width: 200, height: 200)
+                                .rotationEffect(.degrees(180))
+                                .animation(.easeInOut(duration: 0.3), value: sliderValue)
+                            
+                            // Center value
+                            VStack(spacing: 4) {
+                                Text("\(Int(sliderValue))°")
+                                    .font(.system(size: 48, weight: .bold))
+                                    .foregroundColor(.white)
+                            }
+                            .offset(y: -20)
                         }
+                        
+                        // Description text
+                        Text(subInfo)
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.gray)
+                            .multilineTextAlignment(.center)
+                            .lineLimit(3)
+                            .animation(.easeInOut(duration: 0.3), value: subInfo)
                     }
-                    .padding()
-                    
-                    Text(subInfo)
-                        .font(.body)
-                        .foregroundColor(.primary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 20)
-                        .animation(.easeInOut(duration: 0.3), value: subInfo)
+                    .padding(32)
+                    .background(Color(red: 0.15, green: 0.15, blue: 0.17))
+                    .cornerRadius(16)
+                    .padding(.horizontal, 24)
                 }
             } else {
                 // Uncalibrated state - show calibration prompt
-                VStack(spacing: 20) {
+                VStack(spacing: 24) {
                     Image(systemName: "exclamationmark.triangle")
                         .font(.system(size: 60))
                         .foregroundColor(.orange)
                     
                     Text("Device Not Calibrated")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.primary)
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(.white)
                     
                     Text("Please calibrate your device first to start posture monitoring.")
-                        .font(.body)
-                        .foregroundColor(.secondary)
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.gray)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 20)
                     
                     Button(action: {
-                        // Navigate to calibration
-                        // This will be handled by the parent view
+                        // Navigate to calibration tab
+                        homeViewModel.selectTab = .calibration
                     }) {
                         Text("Go to Calibration")
-                            .font(.headline)
+                            .font(.system(size: 16, weight: .semibold))
                             .foregroundColor(.white)
-                            .padding()
-                            .background(Color.blue)
-                            .cornerRadius(10)
+                            .padding(.vertical, 16)
+                            .padding(.horizontal, 32)
+                            .background(Color(red: 0.4, green: 0.9, blue: 0.7)) // Mint green
+                            .cornerRadius(8)
                     }
-                    .padding(.top)
                 }
-                .padding()
+                .padding(32)
+                .background(Color(red: 0.15, green: 0.15, blue: 0.17))
+                .cornerRadius(16)
+                .padding(.horizontal, 24)
             }
+            
+            Spacer()
+        }
+    }
+    
+    private func getStatusText() -> String {
+        switch state {
+        case .excellent:
+            return "Excellent"
+        case .good:
+            return "Good"
+        case .bad:
+            return "Poor"
         }
     }
 }
 
 #Preview {
-    MonitoringView()
+    MonitoringView(homeViewModel: HomeViewModel())
 }
 
 

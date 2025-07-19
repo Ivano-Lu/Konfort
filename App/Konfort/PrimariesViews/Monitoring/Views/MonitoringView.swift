@@ -10,6 +10,7 @@ import SwiftUI
 
 struct MonitoringView: View {
     @StateObject private var viewModel = MonitoringViewModel()
+    @ObservedObject var homeViewModel: HomeViewModel
     
     
     var body: some View {
@@ -21,10 +22,11 @@ struct MonitoringView: View {
             isCalibrated: $viewModel.isCalibrated,
             connectionStatus: $viewModel.connectionStatus,
             lastUpdateTime: $viewModel.lastUpdateTime,
-            dataReceivedCount: $viewModel.dataReceivedCount)
+            dataReceivedCount: $viewModel.dataReceivedCount,
+            homeViewModel: homeViewModel)
     }
 }
 
 #Preview {
-    HomeView()
+    MonitoringView(homeViewModel: HomeViewModel())
 }

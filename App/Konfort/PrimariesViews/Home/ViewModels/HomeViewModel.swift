@@ -9,7 +9,7 @@ import Foundation
 
 
 enum Tab {
-    case monitoring, history, calibration
+    case monitoring, calibration
 }
 
 class HomeViewModel: ObservableObject {
@@ -29,10 +29,6 @@ class HomeViewModel: ObservableObject {
     private func updateChips() {
         chips = [ChipUIItem(title: "Monitoring", isSelected: selectTab == .monitoring, action: { [weak self] in
             self?.selectTab = .monitoring
-        }),
-                 ChipUIItem(title: "History", isSelected: selectTab == .history, action: { [weak self] in
-            self?.selectTab = .history
-            
         }),
                  ChipUIItem(title: "Calibration", isSelected: selectTab == .calibration, action: { [weak self] in
             self?.selectTab = .calibration

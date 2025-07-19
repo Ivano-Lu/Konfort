@@ -20,11 +20,12 @@ struct ChipView: View {
     var body: some View {
         Button(action: item.action) {
             Text(item.title)
-                .padding(.vertical, 8)
-                .padding(.horizontal, 16)
-                .background(item.isSelected ? Color.blue : Color.gray.opacity(0.2))
-                .foregroundColor(item.isSelected ? .white : .black)
-                .cornerRadius(20)
+                .font(.system(size: 14, weight: .medium))
+                .padding(.vertical, 10)
+                .padding(.horizontal, 20)
+                .background(item.isSelected ? Color(red: 0.2, green: 0.2, blue: 0.22) : Color(red: 0.15, green: 0.15, blue: 0.17))
+                .foregroundColor(item.isSelected ? .white : .gray)
+                .cornerRadius(12)
         }
     }
 }

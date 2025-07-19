@@ -18,107 +18,119 @@ struct CalibrationContentView: View {
 
     var body: some View {
         ZStack {
-            VStack(spacing: 20) {
-                Text(title)
-                    .font(.headline)
-                    .multilineTextAlignment(.center)
-                    .padding()
-                    .background(Color.black.opacity(0.7))
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-                    .padding(.horizontal)
-
-                Text(viewModel.hasCalibrationData() ? subtitleText : "No previous calibration data available")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundColor(viewModel.hasCalibrationData() ? .primary : .orange)
-                    .padding(.top)
-
-                VStack(spacing: 30) {
-                    ForEach($coordinates, id: \.id) { coordinate in
-                        CalibrationSectionView(coordinate: coordinate)
-                    }
-                }
-                .padding(.horizontal)
-                
-                // Connection warning banner
-                if !viewModel.bleManager.getConnectionStatus() {
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Title section
                     VStack(spacing: 8) {
-                        HStack {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundColor(.orange)
-                            Text("Connection Warning")
-                                .font(.headline)
-                                .foregroundColor(.orange)
-                        }
-                        
-                        Text("Device is not connected. Please ensure:")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("• Device is turned on and nearby")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            Text("• Bluetooth is enabled")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            Text("• No interference from other devices")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    .padding()
-                    .background(Color.orange.opacity(0.1))
-                    .cornerRadius(8)
-                    .padding(.horizontal)
-                }
+                        Text(title)
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundColor(.white)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 12)
+                            .background(Color(red: 0.15, green: 0.15, blue: 0.17))
+                            .cornerRadius(12)
+                            .padding(.horizontal, 24)
+                            .padding(.top, 16)
 
-                Button(action: {
-                    withAnimation {
-                        showCalibrationCard = true
+                        Text(viewModel.hasCalibrationData() ? subtitleText : "No previous calibration data available")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(viewModel.hasCalibrationData() ? .gray : .orange)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 24)
                     }
-                }) {
-                    Text(titleButton)
-                        .fontWeight(.medium)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.green)
-                        .foregroundColor(.white)
-                        .cornerRadius(8)
-                        .padding(.horizontal)
+                    
+                    // Coordinates sections
+                    VStack(spacing: 20) {
+                        ForEach($coordinates, id: \.id) { coordinate in
+                            CalibrationSectionView(coordinate: coordinate)
+                        }
+                    }
+                    .padding(.horizontal, 24)
+                    
+                    // Connection warning banner
+                    if !viewModel.bleManager.getConnectionStatus() {
+                        VStack(spacing: 12) {
+                            HStack {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .foregroundColor(.orange)
+                                Text("Connection Warning")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundColor(.orange)
+                            }
+                            
+                            Text("Device is not connected. Please ensure:")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.gray)
+                            
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("• Device is turned on and nearby")
+                                    .font(.system(size: 13, weight: .medium))
+                                    .foregroundColor(.gray)
+                                Text("• Bluetooth is enabled")
+                                    .font(.system(size: 13, weight: .medium))
+                                    .foregroundColor(.gray)
+                                Text("• No interference from other devices")
+                                    .font(.system(size: 13, weight: .medium))
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                        .padding(20)
+                        .background(Color.orange.opacity(0.1))
+                        .cornerRadius(12)
+                        .padding(.horizontal, 24)
+                    }
+
+                    // Main calibration button
+                    Button(action: {
+                        withAnimation {
+                            showCalibrationCard = true
+                        }
+                    }) {
+                        Text(titleButton)
+                            .font(.system(size: 16, weight: .semibold))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(Color(red: 0.4, green: 0.9, blue: 0.7)) // Mint green
+                            .foregroundColor(.white)
+                            .cornerRadius(12)
+                            .padding(.horizontal, 24)
+                    }
+                    .padding(.top, 16)
+                    
+                    // Debug buttons section
+                    VStack(spacing: 12) {
+                        Button(action: {
+                            viewModel.testBLEDataReception()
+                        }) {
+                            Text("🔍 Test BLE Data")
+                                .font(.system(size: 14, weight: .medium))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(Color.orange)
+                                .foregroundColor(.white)
+                                .cornerRadius(8)
+                                .padding(.horizontal, 24)
+                        }
+                        
+                        Button(action: {
+                            viewModel.runComprehensiveTest()
+                        }) {
+                            Text("🧪 Test Calibration System")
+                                .font(.system(size: 14, weight: .medium))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(Color.purple)
+                                .foregroundColor(.white)
+                                .cornerRadius(8)
+                                .padding(.horizontal, 24)
+                        }
+                    }
+                    .padding(.top, 8)
+                    
+                    // Bottom spacing
+                    Spacer(minLength: 40)
                 }
-                .padding(.top, 30)
-                
-                // Debug button
-                Button(action: {
-                    viewModel.testBLEDataReception()
-                }) {
-                    Text("🔍 Test BLE Data")
-                        .fontWeight(.medium)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.orange)
-                        .foregroundColor(.white)
-                        .cornerRadius(8)
-                        .padding(.horizontal)
-                }
-                .padding(.top, 10)
-                
-                // System test button
-                Button(action: {
-                    viewModel.runComprehensiveTest()
-                }) {
-                    Text("🧪 Test Calibration System")
-                        .fontWeight(.medium)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.purple)
-                        .foregroundColor(.white)
-                        .cornerRadius(8)
-                        .padding(.horizontal)
-                }
-                .padding(.top, 10)
             }
             .blur(radius: showCalibrationCard ? 3 : 0)
 
@@ -129,6 +141,80 @@ struct CalibrationContentView: View {
             }
         }
         .animation(.easeInOut, value: showCalibrationCard)
+    }
+}
+
+// MARK: - Seated Figure View
+struct SeatedFigureView: View {
+    enum ArmPosition {
+        case up, down
+    }
+    
+    let leftArmPosition: ArmPosition
+    let rightArmPosition: ArmPosition
+    let leftArmColor: Color
+    let rightArmColor: Color
+    
+    var body: some View {
+        ZStack {
+            // Chair/seat background
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color(red: 0.2, green: 0.2, blue: 0.22))
+                .frame(width: 80, height: 20)
+                .offset(y: 35)
+            
+            // Person figure
+            VStack(spacing: 0) {
+                // Arms (only show when up)
+                HStack(spacing: 0) {
+                    // Left arm (only show if up)
+                    if leftArmPosition == .up {
+                        Rectangle()
+                            .fill(leftArmColor)
+                            .frame(width: 4, height: 40)
+                            .rotationEffect(.degrees(-90))
+                            .offset(x: -10)
+                            .offset(y: -20)
+                    }
+                    
+                    Spacer()
+                        .frame(width: 20)
+                    
+                    // Right arm (only show if up)
+                    if rightArmPosition == .up {
+                        Rectangle()
+                            .fill(rightArmColor)
+                            .frame(width: 4, height: 40)
+                            .rotationEffect(.degrees(90))
+                            .offset(x: 10)
+                            .offset(y: -20)
+                    }
+                }
+                .frame(width: 40)
+                
+                // Head
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: 24, height: 24)
+                
+                // Neck
+                Rectangle()
+                    .fill(Color.white)
+                    .frame(width: 6, height: 8)
+                
+                // Torso
+                Rectangle()
+                    .fill(Color.white)
+                    .frame(width: 20, height: 30)
+                
+                // Hips (seated position)
+                Rectangle()
+                    .fill(Color.white)
+                    .frame(width: 24, height: 8)
+                    .offset(y: -2)
+            }
+        }
+        .frame(width: 80, height: 80)
     }
 }
 
@@ -165,10 +251,10 @@ struct CalibrationCard: View {
     let calibrationDuration = 3
 
     let positions: [PositionInstruction] = [
-        .init(title: "Position 1", description: "Sit straight with your back against the chair."),
-        .init(title: "Position 2", description: "Lean your back slightly forward."),
-        .init(title: "Position 3", description: "Relax your shoulders and let your torso drop."),
-        .init(title: "Position 4", description: "Return to a neutral, relaxed position.")
+        .init(title: "Position 1: Both Arms Up", description: "Raise both arms straight up above your head. Keep your back straight and hold this position."),
+        .init(title: "Position 2: Right Arm Up", description: "Lower your left arm and keep only your right arm raised straight up above your head."),
+        .init(title: "Position 3: Left Arm Up", description: "Lower your right arm and raise only your left arm straight up above your head."),
+        .init(title: "Position 4: Both Arms Down", description: "Lower both arms to your sides in a relaxed, natural position.")
     ]
 
     var body: some View {
@@ -180,32 +266,75 @@ struct CalibrationCard: View {
             Group {
                 switch phase {
                 case .intro:
-                    Text("During calibration, you will be asked to hold 4 different positions. Follow the instructions and hold each position for a few seconds while we collect data.")
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal)
+                    VStack(spacing: 16) {
+                        Text("Arm Position Calibration")
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                        
+                        Text("During calibration, you will be asked to hold 4 different arm positions. Follow the visual guide and hold each position for a few seconds while we collect data.")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.gray)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                        
+                        // Preview of all positions
+                        HStack(spacing: 16) {
+                            ForEach(0..<4, id: \.self) { index in
+                                VStack(spacing: 4) {
+                                    getPositionVisual(for: index)
+                                        .frame(height: 50)
+                                    Text("Pos \(index + 1)")
+                                        .font(.caption2)
+                                        .foregroundColor(.gray)
+                                }
+                            }
+                        }
+                        .padding(.top, 12)
+                    }
 
                 case .preparation(let index):
-                    VStack(spacing: 10) {
+                    VStack(spacing: 20) {
                         Text(positions[index].title)
                             .font(.title3)
                             .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                        
+                        // Position visual indicator
+                        getPositionVisual(for: index)
+                            .frame(height: 100)
+                            .padding(.vertical, 8)
+                        
                         Text(positions[index].description)
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.gray)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
+                        
                         Text("Get ready... \(timerValue)s")
                             .font(.title2)
                             .foregroundColor(.orange)
                     }
 
                 case .calibrating(let index):
-                    VStack(spacing: 10) {
+                    VStack(spacing: 20) {
                         Text(positions[index].title)
                             .font(.title3)
                             .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                        
+                        // Position visual indicator
+                        getPositionVisual(for: index)
+                            .frame(height: 100)
+                            .padding(.vertical, 8)
+                        
                         Text("Hold the position for calibration.")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.gray)
+                        
                         Text("Calibrating... \(timerValue)s")
                             .font(.title2)
-                            .foregroundColor(.green)
+                            .foregroundColor(Color(red: 0.4, green: 0.9, blue: 0.7)) // Mint green
                         
                         // Show calibration status
                         if !viewModel.calibrationStatus.isEmpty {
@@ -351,23 +480,72 @@ struct CalibrationCard: View {
         show = false
         // Reset states if needed
     }
+    
+    @ViewBuilder
+    private func getPositionVisual(for index: Int) -> some View {
+        VStack(spacing: 0) {
+            switch index {
+            case 0: // Both Arms Up
+                SeatedFigureView(
+                    leftArmPosition: .up,
+                    rightArmPosition: .up,
+                    leftArmColor: .white,
+                    rightArmColor: .white
+                )
+                
+            case 1: // Right Arm Up
+                SeatedFigureView(
+                    leftArmPosition: .up,
+                    rightArmPosition: .down,
+                    leftArmColor: .white,
+                    rightArmColor: .white
+                )
+                
+            case 2: // Left Arm Up
+                SeatedFigureView(
+                    leftArmPosition: .down,
+                    rightArmPosition: .up,
+                    leftArmColor: .white,
+                    rightArmColor: .white
+                )
+                
+            case 3: // Both Arms Down
+                SeatedFigureView(
+                    leftArmPosition: .down,
+                    rightArmPosition: .down,
+                    leftArmColor: .white,
+                    rightArmColor: .white
+                )
+                
+            default:
+                EmptyView()
+            }
+        }
+    }
 }
 
 struct CalibrationSectionView: View {
     @Binding var coordinate: Coordinates
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 16) {
             Text(coordinate.name)
-                .font(.headline)
+                .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(.white)
 
-            HStack(spacing: 50) {
+            HStack(spacing: 0) {
+                Spacer()
                 CalibrationAxisView(axisTitle: "X", state: $coordinate.x)
+                Spacer()
                 CalibrationAxisView(axisTitle: "Y", state: $coordinate.y)
+                Spacer()
                 CalibrationAxisView(axisTitle: "Z", state: $coordinate.z)
+                Spacer()
             }
         }
+        .padding(20)
+        .background(Color(red: 0.15, green: 0.15, blue: 0.17))
+        .cornerRadius(12)
     }
 }
 
@@ -377,14 +555,13 @@ struct CalibrationAxisView: View {
     @Binding var state: Int
     
     var body: some View {
-        VStack {
+        VStack(spacing: 8) {
             Text(axisTitle)
-                .font(.subheadline)
+                .font(.system(size: 14, weight: .medium))
                 .foregroundColor(.gray)
             Text("\(state > 0 ? "+" : "")\(state)°")
-                .font(.title3)
-                .fontWeight(.bold)
-                .foregroundColor(state > 0 ? .green : state < 0 ? .red : .yellow)
+                .font(.system(size: 20, weight: .bold))
+                .foregroundColor(state > 0 ? Color(red: 0.4, green: 0.9, blue: 0.7) : state < 0 ? .red : .yellow)
         }
     }
 }

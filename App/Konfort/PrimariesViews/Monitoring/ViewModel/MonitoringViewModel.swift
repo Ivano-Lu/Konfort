@@ -81,9 +81,9 @@ class MonitoringViewModel: ObservableObject {
     private let calibrationStore = CalibrationDataStore.shared
     private var logCounter = 0
     private var lastEvaluationTime = Date()
-    private var evaluationInterval: TimeInterval = 2.0 // Evaluate every 2 seconds to reduce UI updates
+    private var evaluationInterval: TimeInterval = 0.5 // Evaluate every 0.5 seconds for faster response
     private var lastUIUpdateTime = Date()
-    private var uiUpdateInterval: TimeInterval = 3.0 // Update UI every 3 seconds
+    private var uiUpdateInterval: TimeInterval = 0.3 // Update UI every 0.3 seconds for smooth updates
     
     // Cached calibration data for faster access
     private var cachedAccCalibration: CalibrationResult?
@@ -97,15 +97,16 @@ class MonitoringViewModel: ObservableObject {
     
     private func setupBluetoothCallbacks() {
         bluetoothManager.onSensorDataReceived = { [weak self] (sensorData: SensorData) in
-            DispatchQueue.main.async {
+            // Process sensor data on background queue for better performance
+            DispatchQueue.global(qos: .userInteractive).async {
                 self?.handleSensorData(sensorData)
             }
         }
     }
     
     private func startConnectionMonitoring() {
-        // Monitor connection status every 2 seconds (reduced frequency)
-        Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
+        // Monitor connection status every 5 seconds (less frequent for better performance)
+        Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
             DispatchQueue.main.async {
                 self?.updateConnectionStatus()
             }
@@ -342,15 +343,12 @@ class MonitoringViewModel: ObservableObject {
         // Convert to arrays for the algorithm
         let arrays = sensorData.toArrays()
         
-        // Log only every 20th evaluation to reduce spam
+        // Log only every 50th evaluation to reduce spam
         logCounter += 1
-        let shouldLog = logCounter % 20 == 0
+        let shouldLog = logCounter % 50 == 0
         
         if shouldLog {
             print("📊 Evaluating posture (sample #\(dataReceivedCount))")
-            print("📊 Current sensor data:")
-            print("   Acc: [\(String(format: "%.3f", arrays.acc[0])), \(String(format: "%.3f", arrays.acc[1])), \(String(format: "%.3f", arrays.acc[2]))]")
-            print("   Mag: [\(String(format: "%.1f", arrays.mag[0])), \(String(format: "%.1f", arrays.mag[1])), \(String(format: "%.1f", arrays.mag[2]))]")
         }
         
         // Evaluate posture according to documentation: 
@@ -359,7 +357,8 @@ class MonitoringViewModel: ObservableObject {
             accData: arrays.acc,
             magData: arrays.mag,
             accCalibration: accCalibration,
-            magCalibration: magCalibration
+            magCalibration: magCalibration,
+            shouldLog: shouldLog
         )
         
         // Generate posture advice
@@ -380,13 +379,9 @@ class MonitoringViewModel: ObservableObject {
             magThreshold: magCalibration.threshold
         )
         
-        // Update UI only at specified intervals to reduce flickering
-        let timeSinceLastUIUpdate = Date().timeIntervalSince(lastUIUpdateTime)
-        if timeSinceLastUIUpdate >= uiUpdateInterval {
-            lastUIUpdateTime = Date()
-            DispatchQueue.main.async {
-                self.updatePostureDisplayWithAdvice(isCorrect: isCorrect, score: score, advice: advice)
-            }
+        // Update UI immediately for faster response
+        DispatchQueue.main.async {
+            self.updatePostureDisplayWithAdvice(isCorrect: isCorrect, score: score, advice: advice)
         }
     }
     
@@ -423,7 +418,8 @@ class MonitoringViewModel: ObservableObject {
     
     private func evaluatePostureAccordingToDocumentation(accData: [Double], magData: [Double], 
                                                         accCalibration: CalibrationResult, 
-                                                        magCalibration: CalibrationResult) -> (isCorrect: Bool, accDensity: Double, magDensity: Double) {
+                                                        magCalibration: CalibrationResult,
+                                                        shouldLog: Bool) -> (isCorrect: Bool, accDensity: Double, magDensity: Double) {
         
         // Calculate densities using the original algorithm
         let accDensity = CalibrationMath.computeDensity(
@@ -452,15 +448,17 @@ class MonitoringViewModel: ObservableObject {
         // (This means posture is INCORRECT only if BOTH sensors are below threshold)
         let isCorrect = accCorrect || magCorrect
         
-        // Add detailed logging to understand the values
-        print("📊 Posture evaluation details:")
-        print("   Acc density: \(String(format: "%.6e", accDensity))")
-        print("   Acc threshold: \(String(format: "%.6e", accThreshold)) (original: \(String(format: "%.6e", accCalibration.threshold)))")
-        print("   Acc correct: \(accCorrect)")
-        print("   Mag density: \(String(format: "%.6e", magDensity))")
-        print("   Mag threshold: \(String(format: "%.6e", magThreshold)) (original: \(String(format: "%.6e", magCalibration.threshold)))")
-        print("   Mag correct: \(magCorrect)")
-        print("   Final result: \(isCorrect ? "CORRECT" : "INCORRECT")")
+        // Only log detailed evaluation occasionally
+        if shouldLog {
+            print("📊 Posture evaluation details:")
+            print("   Acc density: \(String(format: "%.6e", accDensity))")
+            print("   Acc threshold: \(String(format: "%.6e", accThreshold))")
+            print("   Acc correct: \(accCorrect)")
+            print("   Mag density: \(String(format: "%.6e", magDensity))")
+            print("   Mag threshold: \(String(format: "%.6e", magThreshold))")
+            print("   Mag correct: \(magCorrect)")
+            print("   Final result: \(isCorrect ? "CORRECT" : "INCORRECT")")
+        }
         
         return (isCorrect, accDensity, magDensity)
     }
@@ -532,42 +530,27 @@ class MonitoringViewModel: ObservableObject {
         sliderValue = score
         isPostureCorrect = isCorrect
         
-        // Determine state based on advice priority
-        switch advice.priority {
-        case .critical:
-            state = .bad
-            description = "🚨 " + advice.title + "\n" + advice.description
-        case .important:
-            state = .bad
-            description = "⚠️ " + advice.title + "\n" + advice.description
-        case .moderate:
-            state = .good
-            description = "📏 " + advice.title + "\n" + advice.description
-        case .good:
-            state = .good
-            description = "✅ " + advice.title + "\n" + advice.description
-        case .excellent:
-            state = .excellent
-            description = "🎉 " + advice.title + "\n" + advice.description
-        }
+        // Simplified description for faster updates
+        let statusEmoji = isCorrect ? "✅" : "⚠️"
+        let statusText = isCorrect ? "Good" : "Poor"
         
-        // Add specific action with bullet points
-        let actionLines = advice.specificAction.components(separatedBy: "\n• ")
-        if actionLines.count > 1 {
-            description += "\n\nAzioni specifiche:\n"
-            for (index, action) in actionLines.enumerated() {
-                if index == 0 {
-                    description += "• " + action
-                } else {
-                    description += "\n• " + action
-                }
-            }
+        // Determine state based on score for faster response
+        if score >= 90 {
+            state = .excellent
+            description = "\(statusEmoji) Excellent posture! Keep it up!"
+        } else if score >= 75 {
+            state = .good
+            description = "\(statusEmoji) Good posture! Minor adjustments needed"
+        } else if score >= 60 {
+            state = .good
+            description = "\(statusEmoji) Fair posture. Try to sit up straighter"
         } else {
-            description += "\n\n" + advice.specificAction
+            state = .bad
+            description = "\(statusEmoji) Poor posture. Please adjust your position"
         }
         
         // Add score information
-        description += "\n\nPunteggio: \(Int(score))%"
+        description += "\nScore: \(Int(score))%"
     }
     
     func updateSliderValue(fromAPI value: Double) {
