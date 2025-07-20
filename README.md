@@ -80,11 +80,182 @@ This server-side component ensures that the data remain secure and accessible fo
 
 ### Folder Structure
 ```
+.
+├── .gitignore
+├── .idea
+│   ├── .gitignore
+│   ├── Konfort.iml
+│   ├── compiler.xml
+│   ├── gradle.xml
+│   ├── jarRepositories.xml
+│   ├── misc.xml
+│   ├── modules
+│   │   └── prova.main.iml
+│   ├── modules.xml
+│   └── vcs.xml
+├── App
+│   ├── Konfort
+│   │   ├── Assets.xcassets
+│   │   │   ├── AccentColor.colorset
+│   │   │   │   └── Contents.json
+│   │   │   ├── AppIcon.appiconset
+│   │   │   │   └── Contents.json
+│   │   │   └── Contents.json
+│   │   ├── CommonViews
+│   │   │   ├── Alerts
+│   │   │   │   └── AlertView.swift
+│   │   │   ├── Chip
+│   │   │   │   └── ChipView.swift
+│   │   │   ├── Loader
+│   │   │   │   └── LoaderView.swift
+│   │   │   └── TextFields
+│   │   │       └── CustomTextField.swift
+│   │   ├── ContentView.swift
+│   │   ├── Info.plist
+│   │   ├── KonfortApp.swift
+│   │   ├── Login
+│   │   │   ├── ViewModels
+│   │   │   │   └── LoginViewModel.swift
+│   │   │   └── Views
+│   │   │       ├── LoginContentView.swift
+│   │   │       └── LoginView.swift
+│   │   ├── Models
+│   │   │   ├── CalibrationDataPayload.swift
+│   │   │   ├── CalibrationMath.swift
+│   │   │   ├── CalibrationMathTests.swift
+│   │   │   └── CalibrationResult.swift
+│   │   ├── Preview Content
+│   │   │   └── Preview Assets.xcassets
+│   │   │       └── Contents.json
+│   │   ├── PrimariesViews
+│   │   │   ├── Calibration
+│   │   │   │   ├── Models
+│   │   │   │   │   └── CalibrationViewModel.swift
+│   │   │   │   └── Views
+│   │   │   │       ├── CalibrationContentView.swift
+│   │   │   │       └── CalibrationView.swift
+│   │   │   ├── History
+│   │   │   │   ├── ViewModels
+│   │   │   │   │   └── HistoryViewModel.swift
+│   │   │   │   └── Views
+│   │   │   │       ├── HistoryContentView.swift
+│   │   │   │       └── HistoryView.swift
+│   │   │   ├── Home
+│   │   │   │   ├── ViewModels
+│   │   │   │   │   └── HomeViewModel.swift
+│   │   │   │   └── Views
+│   │   │   │       └── HomeView.swift
+│   │   │   └── Monitoring
+│   │   │       ├── ViewModel
+│   │   │       │   └── MonitoringViewModel.swift
+│   │   │       └── Views
+│   │   │           ├── MonitoringContentView.swift
+│   │   │           └── MonitoringView.swift
+│   │   ├── Services
+│   │   │   ├── BluetoothManager.swift
+│   │   │   └── CalibrationService.swift
+│   │   ├── SignIn
+│   │   │   ├── ViewModels
+│   │   │   │   └── SigninViewModel.swift
+│   │   │   └── Views
+│   │   │       ├── SignupContentView.swift
+│   │   │       └── SignupView.swift
+│   │   └── Stores
+│   │       ├── CalibrationDataStore.swift
+│   │       └── UserDataStore.swift
+│   ├── Konfort.xcodeproj
+│   │   ├── project.pbxproj
+│   │   ├── project.xcworkspace
+│   │   │   ├── contents.xcworkspacedata
+│   │   │   ├── xcshareddata
+│   │   │   │   └── IDEWorkspaceChecks.plist
+│   │   │   └── xcuserdata
+│   │   │       └── ivano.xcuserdatad
+│   │   │           └── UserInterfaceState.xcuserstate
+│   │   └── xcuserdata
+│   │       └── ivano.xcuserdatad
+│   │           └── xcschemes
+│   │               └── xcschememanagement.plist
+│   └── README.md
+├── Backend
+│   ├── .gitattributes
+│   ├── .gitignore
+│   ├── Backend_documentation.md
+│   ├── DEBUG_README.md
+│   ├── MIGRATION_README.md
+│   ├── New Text Document.txt
+│   ├── build.gradle.kts
+│   ├── docker-compose.yml
+│   ├── gradle
+│   │   └── wrapper
+│   │       ├── gradle-wrapper.jar
+│   │       └── gradle-wrapper.properties
+│   ├── gradlew
+│   ├── gradlew.bat
+│   ├── migration.sql
+│   ├── settings.gradle.kts
+│   └── src
+│       ├── main
+│       │   ├── java
+│       │   │   └── prova_graphl
+│       │   │       └── konfort
+│       │   │           ├── ProvaApplication.java
+│       │   │           ├── configurations
+│       │   │           │   └── CustomCorsFilter.java
+│       │   │           ├── converters
+│       │   │           │   ├── MatrixConverter.java
+│       │   │           │   └── VectorConverter.java
+│       │   │           ├── models
+│       │   │           │   ├── dao
+│       │   │           │   │   ├── AnalizedData.java
+│       │   │           │   │   ├── CalibrationData.java
+│       │   │           │   │   ├── Session.java
+│       │   │           │   │   └── User.java
+│       │   │           │   └── dto
+│       │   │           │       ├── CalibrationDataInput.java
+│       │   │           │       ├── CalibrationDataPayload.java
+│       │   │           │       ├── IOData.java
+│       │   │           │       ├── LoginRequest.java
+│       │   │           │       ├── LoginResponse.java
+│       │   │           │       └── SaveCalibrationDataInput.java
+│       │   │           ├── repositories
+│       │   │           │   ├── CalibrationDataRepository.java
+│       │   │           │   ├── SessionRepository.java
+│       │   │           │   └── UserRepository.java
+│       │   │           ├── resolvers
+│       │   │           │   ├── AuthResolver.java
+│       │   │           │   ├── mutations
+│       │   │           │   │   ├── CalibrationDataMutation.java
+│       │   │           │   │   ├── DataMutation.java
+│       │   │           │   │   └── UserMutation.java
+│       │   │           │   └── queries
+│       │   │           │       ├── CalibrationDataQuery.java
+│       │   │           │       ├── DataResolver.java
+│       │   │           │       └── UserQuery.java
+│       │   │           ├── services
+│       │   │           │   ├── AnalizedDataService.java
+│       │   │           │   ├── AuthenticationService.java
+│       │   │           │   ├── AuthenticationServiceImplementation.java
+│       │   │           │   ├── CalibrationDataService.java
+│       │   │           │   └── UserDetailsService.java
+│       │   │           └── utils
+│       │   │               ├── CachedBodyHttpServletRequest.java
+│       │   │               ├── GraphQLUtil.java
+│       │   │               └── JwtTokenUtil.java
+│       │   └── resources
+│       │       ├── application.properties
+│       │       └── graphql
+│       │           └── schema.graphqls
+│       └── test
+│           └── java
+│               └── prova_graphl
+│                   └── konfort
+│                       └── ProvaApplicationTests.java
+├── Firmware
+│   ├── Konfort.ino
+│   └── README.md
+├── LICENCE.txt
 ├── README.md
-└── LICENCE.txt
-└── App
-└── Backend
-└── Firmware
 ```
 
 
