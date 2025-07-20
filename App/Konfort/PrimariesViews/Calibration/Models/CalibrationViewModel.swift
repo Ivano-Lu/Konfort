@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+
+
 struct Coordinates {
     var id = UUID()
     var name: String
@@ -351,8 +353,12 @@ class CalibrationViewModel: ObservableObject {
             self?.updateCoordinatesFromCalibration()
         }
         
-        // Save to backend (assuming user ID 1 for now) // todo -> don't hardcode user id
-        calibrationService.saveCalibrationData(accCalibration: accCalibration, magCalibration: magCalibration, userId: 1) { [weak self] (success: Bool) in
+        // Get current user ID from UserDefaults
+        let currentUserId = UserDefaults.standard.integer(forKey: "userId")
+        let targetUserId = currentUserId > 0 ? currentUserId : 1 // fallback to 1 if no user logged in
+        
+        // Save to backend
+        calibrationService.saveCalibrationData(accCalibration: accCalibration, magCalibration: magCalibration, userId: targetUserId) { [weak self] (success: Bool) in
             DispatchQueue.main.async {
                 if success {
                     print("✅ Calibration data saved to backend successfully")

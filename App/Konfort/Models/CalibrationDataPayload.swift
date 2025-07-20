@@ -9,9 +9,24 @@ import Foundation
 
 struct CalibrationDataPayload {
     let id: String
-    let matrix: [[Double]]
-    let invertedMatrix: [[Double]]
-    let determinant: Double
+    // Accelerometer calibration data
+    let accMatrix: [[Double]]
+    let accInvertedMatrix: [[Double]]
+    let accDeterminant: Double
+    // Magnetometer calibration data
+    let magMatrix: [[Double]]
+    let magInvertedMatrix: [[Double]]
+    let magDeterminant: Double
+    
+    init(id: String, accMatrix: [[Double]], accInvertedMatrix: [[Double]], accDeterminant: Double, magMatrix: [[Double]], magInvertedMatrix: [[Double]], magDeterminant: Double) {
+        self.id = id
+        self.accMatrix = accMatrix
+        self.accInvertedMatrix = accInvertedMatrix
+        self.accDeterminant = accDeterminant
+        self.magMatrix = magMatrix
+        self.magInvertedMatrix = magInvertedMatrix
+        self.magDeterminant = magDeterminant
+    }
 }
 
 // MARK: - New Calibration Types

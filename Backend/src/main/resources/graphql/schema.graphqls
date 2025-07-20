@@ -40,6 +40,7 @@ type LoginResponse{
     token: String!
     refreshToken: String!
     userId: Int!
+    calibrationData: CalibrationDataPayload
 }
 
 type User{
@@ -51,9 +52,12 @@ type User{
 }
 
 input CalibrationDataInput {
-  matrix: [[Float]]!
-  invertedMatrix: [[Float]]!
-  determinant: Float!
+  accMatrix: [[Float]]!
+  accInvertedMatrix: [[Float]]!
+  accDeterminant: Float!
+  magMatrix: [[Float]]!
+  magInvertedMatrix: [[Float]]!
+  magDeterminant: Float!
 }
 
 input SaveCalibrationDataInput {
@@ -63,9 +67,12 @@ input SaveCalibrationDataInput {
 
 type CalibrationDataPayload {
   id: ID!
-  matrix: [[Float]]!
-  invertedMatrix: [[Float]]!
-  determinant: Float!
+  accMatrix: [[Float]]!
+  accInvertedMatrix: [[Float]]!
+  accDeterminant: Float!
+  magMatrix: [[Float]]!
+  magInvertedMatrix: [[Float]]!
+  magDeterminant: Float!
 }
 
 

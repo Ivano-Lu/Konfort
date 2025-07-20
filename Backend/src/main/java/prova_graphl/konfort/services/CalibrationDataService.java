@@ -31,9 +31,16 @@ public class CalibrationDataService {
 
         CalibrationDataInput dataInput = input.getCalibrationData();
 
-        entity.setMatrix(dataInput.getMatrix());
-        entity.setInvertedMatrix(dataInput.getInvertedMatrix());
-        entity.setDeterminant(dataInput.getDeterminant());
+        // Set accelerometer data
+        entity.setAccMatrix(dataInput.getAccMatrix());
+        entity.setAccInvertedMatrix(dataInput.getAccInvertedMatrix());
+        entity.setAccDeterminant(dataInput.getAccDeterminant());
+        
+        // Set magnetometer data
+        entity.setMagMatrix(dataInput.getMagMatrix());
+        entity.setMagInvertedMatrix(dataInput.getMagInvertedMatrix());
+        entity.setMagDeterminant(dataInput.getMagDeterminant());
+        
         entity.setUser(user);
 
         CalibrationData saved = calibrationDataRepository.save(entity);
@@ -55,12 +62,20 @@ public class CalibrationDataService {
         return calibrationDataRepository.findByUserId(userId);
     }
 
-    private CalibrationDataPayload mapToPayload(CalibrationData entity) {
+    public CalibrationDataPayload mapToPayload(CalibrationData entity) {
         CalibrationDataPayload payload = new CalibrationDataPayload();
         payload.setId(entity.getId());
-        payload.setMatrix(entity.getMatrix());
-        payload.setInvertedMatrix(entity.getInvertedMatrix());
-        payload.setDeterminant(entity.getDeterminant());
+        
+        // Set accelerometer data
+        payload.setAccMatrix(entity.getAccMatrix());
+        payload.setAccInvertedMatrix(entity.getAccInvertedMatrix());
+        payload.setAccDeterminant(entity.getAccDeterminant());
+        
+        // Set magnetometer data
+        payload.setMagMatrix(entity.getMagMatrix());
+        payload.setMagInvertedMatrix(entity.getMagInvertedMatrix());
+        payload.setMagDeterminant(entity.getMagDeterminant());
+        
         return payload;
     }
 }

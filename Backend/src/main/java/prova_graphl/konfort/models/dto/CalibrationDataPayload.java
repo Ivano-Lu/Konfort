@@ -7,7 +7,14 @@ import java.util.List;
 @Data
 public class CalibrationDataPayload {
     private Long id;
-    private List<List<Double>> matrix;
-    private List<List<Double>> invertedMatrix;
-    private Double determinant;
+    
+    // Accelerometer calibration data
+    private List<List<Double>> accMatrix;
+    private List<List<Double>> accInvertedMatrix;
+    private Double accDeterminant;
+    
+    // Magnetometer calibration data
+    private List<List<Double>> magMatrix;
+    private List<List<Double>> magInvertedMatrix;
+    private Double magDeterminant;
 }

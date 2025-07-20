@@ -18,22 +18,34 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "matrix_data")
+@Table(name = "calibration_data")
 public class CalibrationData {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // Accelerometer calibration data
     @Convert(converter = MatrixConverter.class)
     @Column(columnDefinition = "TEXT")
-    private List<List<Double>> matrix;
+    private List<List<Double>> accMatrix;
 
     @Convert(converter = MatrixConverter.class)
     @Column(columnDefinition = "TEXT")
-    private List<List<Double>> invertedMatrix;
+    private List<List<Double>> accInvertedMatrix;
 
-    private Double determinant;
+    private Double accDeterminant;
+
+    // Magnetometer calibration data
+    @Convert(converter = MatrixConverter.class)
+    @Column(columnDefinition = "TEXT")
+    private List<List<Double>> magMatrix;
+
+    @Convert(converter = MatrixConverter.class)
+    @Column(columnDefinition = "TEXT")
+    private List<List<Double>> magInvertedMatrix;
+
+    private Double magDeterminant;
 
     @OneToOne
     @JoinColumn(name = "user_id", unique = true)

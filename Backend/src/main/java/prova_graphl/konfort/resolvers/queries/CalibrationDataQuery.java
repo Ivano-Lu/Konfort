@@ -3,7 +3,7 @@ package prova_graphl.konfort.resolvers.queries;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.stereotype.Controller;
-import prova_graphl.konfort.models.dao.CalibrationData;
+import prova_graphl.konfort.models.dto.CalibrationDataPayload;
 import prova_graphl.konfort.services.CalibrationDataService;
 
 @Controller
@@ -16,8 +16,7 @@ public class CalibrationDataQuery {
     }
 
     @QueryMapping
-    public CalibrationData fetchCalibrationData(@Argument Long userId) {
-        return calibrationDataService.getCalibrationDataByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Dati non trovati per userId: " + userId));
+    public CalibrationDataPayload fetchCalibrationData(@Argument Long userId) {
+        return calibrationDataService.fetchCalibrationData(userId);
     }
 }

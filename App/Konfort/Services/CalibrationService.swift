@@ -9,6 +9,8 @@ import Foundation
 import SwiftUI
 import Accelerate
 
+
+
 // MARK: - Calibration Math Functions
 struct CalibrationMath {
     
@@ -428,121 +430,7 @@ class CalibrationService {
         return self.storedCalibrationData
     }
     
-    // MARK: - New Calibration Data Methods
-    func saveCalibrationData(accCalibration: CalibrationResult, magCalibration: CalibrationResult, userId: Int, completion: @escaping (Bool) -> Void) {
-        print("🌐 Starting GraphQL save request...")
-        
-        // Use the existing schema - save as JSON string
-        let accCalibrationJSON = try? JSONEncoder().encode(accCalibration)
-        let magCalibrationJSON = try? JSONEncoder().encode(magCalibration)
-        
-        let accCalibrationString = String(data: accCalibrationJSON ?? Data(), encoding: .utf8) ?? ""
-        let magCalibrationString = String(data: magCalibrationJSON ?? Data(), encoding: .utf8) ?? ""
-        
-        let mutation = """
-        mutation SaveCalibrationData($userId: ID!, $accData: String!, $magData: String!) {
-            saveCalibrationData(userId: $userId, accData: $accData, magData: $magData) {
-                id
-                success
-            }
-        }
-        """
 
-        let variables: [String: Any] = [
-            "userId": String(userId),
-            "accData": accCalibrationString,
-            "magData": magCalibrationString
-        ]
-
-        let requestBody: [String: Any] = [
-            "query": mutation,
-            "variables": variables,
-            "operationName": "SaveCalibrationData"
-        ]
-
-        guard let url = URL(string: "http://172.20.10.10:8080/graphql"),
-              let httpBody = try? JSONSerialization.data(withJSONObject: requestBody) else {
-            print("❌ URL o body invalido")
-            completion(false)
-            return
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.httpBody = httpBody
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        // Set timeout to 10 seconds (reduced from 30)
-        request.timeoutInterval = 10.0
-        
-        print("🌐 Sending request to: \(url)")
-        if self.isCollectingData {
-            print("🌐 Request body: \(String(data: httpBody, encoding: .utf8) ?? "Invalid")")
-        }
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                print("❌ Errore richiesta: \(error.localizedDescription)")
-                if let urlError = error as? URLError {
-                    print("❌ URL Error code: \(urlError.code.rawValue)")
-                    print("❌ URL Error description: \(urlError.localizedDescription)")
-                }
-                completion(false)
-                return
-            }
-
-            if let httpResponse = response as? HTTPURLResponse {
-                if self.isCollectingData {
-                    print("🌐 HTTP Response: \(httpResponse.statusCode)")
-                }
-            }
-
-            guard let data = data else {
-                print("❌ Nessun dato ricevuto")
-                completion(false)
-                return
-            }
-
-            if self.isCollectingData {
-                print("🌐 Received response data: \(String(data: data, encoding: .utf8) ?? "Invalid")")
-            }
-
-            do {
-                let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
-                
-                if let json = json,
-                   let dataDict = json["data"] as? [String: Any],
-                   let result = dataDict["saveCalibrationData"] as? [String: Any] {
-                    
-                    let success = result["success"] as? Bool ?? false
-                    let id = result["id"] as? String ?? ""
-                    
-                    if success {
-                        print("✅ Calibration data saved successfully with ID: \(id)")
-                        completion(true)
-                    } else {
-                        print("❌ Failed to save calibration data")
-                        completion(false)
-                    }
-                } else if let json = json,
-                          let errors = json["errors"] as? [[String: Any]] {
-                    print("❌ GraphQL errors: \(errors)")
-                    completion(false)
-                } else {
-                    print("❌ JSON parsing error o dati mancanti")
-                    if let json = json {
-                        print("❌ Full response: \(json)")
-                    } else {
-                        print("❌ Could not parse JSON response")
-                    }
-                    completion(false)
-                }
-            } catch {
-                print("❌ Errore parsing JSON: \(error)")
-                completion(false)
-            }
-        }.resume()
-    }
     
     func fetchCalibrationData(userId: Int, completion: @escaping (CalibrationResult?, CalibrationResult?) -> Void) {
         let query = """
@@ -646,9 +534,12 @@ class CalibrationService {
         query FetchCalibrationData($userId: ID!) {
             fetchCalibrationData(userId: $userId) {
                 id
-                matrix
-                invertedMatrix
-                determinant
+                accMatrix
+                accInvertedMatrix
+                accDeterminant
+                magMatrix
+                magInvertedMatrix
+                magDeterminant
             }
         }
         """
@@ -692,15 +583,21 @@ class CalibrationService {
                    let calibData = dataDict["fetchCalibrationData"] as? [String: Any] {
 
                     let id = calibData["id"] as? String ?? ""
-                    let determinant = calibData["determinant"] as? Double ?? 0.0
-                    let matrix = calibData["matrix"] as? [[Double]] ?? []
-                    let invertedMatrix = calibData["invertedMatrix"] as? [[Double]] ?? []
+                    let accDeterminant = calibData["accDeterminant"] as? Double ?? 0.0
+                    let accMatrix = calibData["accMatrix"] as? [[Double]] ?? []
+                    let accInvertedMatrix = calibData["accInvertedMatrix"] as? [[Double]] ?? []
+                    let magDeterminant = calibData["magDeterminant"] as? Double ?? 0.0
+                    let magMatrix = calibData["magMatrix"] as? [[Double]] ?? []
+                    let magInvertedMatrix = calibData["magInvertedMatrix"] as? [[Double]] ?? []
 
                     let calibrationData = CalibrationDataPayload(
                         id: id,
-                        matrix: matrix,
-                        invertedMatrix: invertedMatrix,
-                        determinant: determinant
+                        accMatrix: accMatrix,
+                        accInvertedMatrix: accInvertedMatrix,
+                        accDeterminant: accDeterminant,
+                        magMatrix: magMatrix,
+                        magInvertedMatrix: magInvertedMatrix,
+                        magDeterminant: magDeterminant
                     )
 
                     // ✅ Salva internamente nel service
@@ -713,6 +610,136 @@ class CalibrationService {
                 }
             } catch {
                 print("❌ Errore parsing JSON: \(error)")
+                completion(false)
+            }
+        }.resume()
+    }
+    
+    // MARK: - Save Calibration Data Method
+    func saveCalibrationData(accCalibration: CalibrationResult, magCalibration: CalibrationResult, userId: Int, completion: @escaping (Bool) -> Void) {
+        print("💾 Saving calibration data to backend for user \(userId)...")
+        
+        // Get current user ID from UserDefaults
+        let currentUserId = UserDefaults.standard.integer(forKey: "userId")
+        let targetUserId = currentUserId > 0 ? currentUserId : userId
+        
+        // Convert CalibrationResult to matrix format for backend
+        let accMatrix = accCalibration.mCov
+        let accInvertedMatrix = accCalibration.mInv
+        let accDeterminant = accCalibration.det
+        
+        let magMatrix = magCalibration.mCov
+        let magInvertedMatrix = magCalibration.mInv
+        let magDeterminant = magCalibration.det
+        
+        let mutation = """
+        mutation SaveCalibrationData($input: SaveCalibrationDataInput!) {
+            saveCalibrationData(input: $input) {
+                id
+                accMatrix
+                accInvertedMatrix
+                accDeterminant
+                magMatrix
+                magInvertedMatrix
+                magDeterminant
+            }
+        }
+        """
+        
+        let variables: [String: Any] = [
+            "input": [
+                "userId": String(targetUserId),
+                "calibrationData": [
+                    "accMatrix": accMatrix,
+                    "accInvertedMatrix": accInvertedMatrix,
+                    "accDeterminant": accDeterminant,
+                    "magMatrix": magMatrix,
+                    "magInvertedMatrix": magInvertedMatrix,
+                    "magDeterminant": magDeterminant
+                ]
+            ]
+        ]
+        
+        let requestBody: [String: Any] = [
+            "query": mutation,
+            "variables": variables,
+            "operationName": "SaveCalibrationData"
+        ]
+        
+        guard let url = URL(string: "http://172.20.10.10:8080/graphql"),
+              let httpBody = try? JSONSerialization.data(withJSONObject: requestBody) else {
+            print("❌ URL o body invalido per saveCalibrationData")
+            completion(false)
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.httpBody = httpBody
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        // Add authorization header if available
+        if let token = UserDefaults.standard.string(forKey: "authToken") {
+            request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("❌ Errore richiesta saveCalibrationData: \(error.localizedDescription)")
+                completion(false)
+                return
+            }
+            
+            guard let data = data else {
+                print("❌ Nessun dato ricevuto per saveCalibrationData")
+                completion(false)
+                return
+            }
+            
+            do {
+                if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                    print("📦 JSON response saveCalibrationData: \(json)")
+                    
+                    if let dataDict = json["data"] as? [String: Any],
+                       let savedData = dataDict["saveCalibrationData"] as? [String: Any] {
+                        
+                        let id = savedData["id"] as? String ?? ""
+                        let savedAccDeterminant = savedData["accDeterminant"] as? Double ?? 0.0
+                        let savedAccMatrix = savedData["accMatrix"] as? [[Double]] ?? []
+                        let savedAccInvertedMatrix = savedData["accInvertedMatrix"] as? [[Double]] ?? []
+                        let savedMagDeterminant = savedData["magDeterminant"] as? Double ?? 0.0
+                        let savedMagMatrix = savedData["magMatrix"] as? [[Double]] ?? []
+                        let savedMagInvertedMatrix = savedData["magInvertedMatrix"] as? [[Double]] ?? []
+                        
+                        let savedCalibrationData = CalibrationDataPayload(
+                            id: id,
+                            accMatrix: savedAccMatrix,
+                            accInvertedMatrix: savedAccInvertedMatrix,
+                            accDeterminant: savedAccDeterminant,
+                            magMatrix: savedMagMatrix,
+                            magInvertedMatrix: savedMagInvertedMatrix,
+                            magDeterminant: savedMagDeterminant
+                        )
+                        
+                        // Update internal calibration data
+                        self.setCalibrationData(savedCalibrationData)
+                        
+                        print("✅ Calibration data saved successfully with ID: \(id)")
+                        completion(true)
+                        
+                    } else if let errors = json["errors"] as? [[String: Any]] {
+                        print("❌ GraphQL errors in saveCalibrationData: \(errors)")
+                        completion(false)
+                    } else {
+                        print("❌ Unexpected response format in saveCalibrationData")
+                        completion(false)
+                    }
+                } else {
+                    print("❌ Invalid JSON response in saveCalibrationData")
+                    completion(false)
+                }
+            } catch {
+                print("❌ Errore parsing JSON saveCalibrationData: \(error)")
                 completion(false)
             }
         }.resume()
