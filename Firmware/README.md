@@ -123,7 +123,7 @@ if (central) {
             char jsonBuffer[128];
             snprintf(
                 jsonBuffer, sizeof(jsonBuffer),
-                "{\"acc\":{\"x\":%.2f,\"y\":%.2f,\"z\":%.2f},\"mag\":{\"x\":%.2f,\"y\":%.2f,\"z\":%.2f}}",
+                "{\"acc\":{\"x\":%.4f,\"y\":%.4f,\"z\":%.4f},\"mag\":{\"x\":%.4f,\"y\":%.4f,\"z\":%.4f}}",
                 ax, ay, az, mx, my, mz
             );
 
