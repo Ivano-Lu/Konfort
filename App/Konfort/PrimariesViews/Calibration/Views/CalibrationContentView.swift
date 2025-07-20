@@ -101,9 +101,9 @@ struct CalibrationContentView: View {
                     // Debug buttons section
                     VStack(spacing: 12) {
                         Button(action: {
-                            viewModel.testBLEDataReception()
+                            viewModel.debugCalibrationData()
                         }) {
-                            Text("🔍 Test BLE Data")
+                            Text("🔍 Debug Calibration Data")
                                 .font(.system(size: 14, weight: .medium))
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 12)

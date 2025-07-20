@@ -56,10 +56,14 @@ public class AuthenticationServiceImplementation implements AuthenticationServic
             Optional<prova_graphl.konfort.models.dao.CalibrationData> calibData = calibrationDataService.getCalibrationDataByUserId(user.getId());
             if (calibData.isPresent()) {
                 calibrationData = calibrationDataService.mapToPayload(calibData.get());
+                System.out.println("✅ Calibration data found for user " + user.getId());
+            } else {
+                System.out.println("ℹ️ No calibration data found for user " + user.getId());
             }
         } catch (Exception e) {
             // Log error but don't fail login if calibration data is not available
-            System.out.println("Warning: Could not fetch calibration data for user " + user.getId() + ": " + e.getMessage());
+            System.out.println("⚠️ Warning: Could not fetch calibration data for user " + user.getId() + ": " + e.getMessage());
+            // Continue with login without calibration data
         }
 
         return new LoginResponse(accessToken, refreshToken, user.getId(), calibrationData);

@@ -2,6 +2,7 @@ type Query {
     getAnalizedDataById(id: Int!): AnalizedData
     getUserById(id: Int!): User
     fetchCalibrationData(userId: ID!): CalibrationDataPayload!
+    debugCalibrationData(userId: ID!): String!
 }
 
 type Mutation {
@@ -55,9 +56,15 @@ input CalibrationDataInput {
   accMatrix: [[Float]]!
   accInvertedMatrix: [[Float]]!
   accDeterminant: Float!
+  accVMedia: [Float]
+  accSigma: [Float]
+  accThreshold: Float
   magMatrix: [[Float]]!
   magInvertedMatrix: [[Float]]!
   magDeterminant: Float!
+  magVMedia: [Float]
+  magSigma: [Float]
+  magThreshold: Float
 }
 
 input SaveCalibrationDataInput {
@@ -70,9 +77,15 @@ type CalibrationDataPayload {
   accMatrix: [[Float]]!
   accInvertedMatrix: [[Float]]!
   accDeterminant: Float!
+  accVMedia: [Float]
+  accSigma: [Float]
+  accThreshold: Float
   magMatrix: [[Float]]!
   magInvertedMatrix: [[Float]]!
   magDeterminant: Float!
+  magVMedia: [Float]
+  magSigma: [Float]
+  magThreshold: Float
 }
 
 

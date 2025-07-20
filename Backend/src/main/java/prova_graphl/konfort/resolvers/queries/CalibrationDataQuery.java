@@ -17,6 +17,33 @@ public class CalibrationDataQuery {
 
     @QueryMapping
     public CalibrationDataPayload fetchCalibrationData(@Argument Long userId) {
-        return calibrationDataService.fetchCalibrationData(userId);
+        System.out.println("🔍 GraphQL query: fetchCalibrationData for userId: " + userId);
+        try {
+            CalibrationDataPayload result = calibrationDataService.fetchCalibrationData(userId);
+            System.out.println("✅ GraphQL query successful, returning calibration data");
+            return result;
+        } catch (Exception e) {
+            System.out.println("❌ GraphQL query failed: " + e.getMessage());
+            throw e;
+        }
+    }
+    
+    @QueryMapping
+    public String debugCalibrationData(@Argument Long userId) {
+        System.out.println("🔍 Debug query: checking calibration data for userId: " + userId);
+        try {
+            var userOpt = calibrationDataService.getCalibrationDataByUserId(userId);
+            if (userOpt.isPresent()) {
+                var data = userOpt.get();
+                return String.format("✅ Calibration data found - ID: %d, Acc matrix: %s, Mag matrix: %s", 
+                    data.getId(),
+                    data.getAccMatrix() != null ? data.getAccMatrix().size() + "x" + (data.getAccMatrix().isEmpty() ? "0" : data.getAccMatrix().get(0).size()) : "null",
+                    data.getMagMatrix() != null ? data.getMagMatrix().size() + "x" + (data.getMagMatrix().isEmpty() ? "0" : data.getMagMatrix().get(0).size()) : "null");
+            } else {
+                return "❌ No calibration data found for user: " + userId;
+            }
+        } catch (Exception e) {
+            return "❌ Error checking calibration data: " + e.getMessage();
+        }
     }
 }

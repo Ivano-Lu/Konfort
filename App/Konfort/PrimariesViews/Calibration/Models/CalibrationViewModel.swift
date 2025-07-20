@@ -59,8 +59,14 @@ class CalibrationViewModel: ObservableObject {
     
     private func calculateValues() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [weak self] in
-            // Load saved calibration data from backend
-            self?.loadCalibrationData()
+            // Check if user is logged in and load calibration data from backend
+            let currentUserId = UserDefaults.standard.integer(forKey: "userId")
+            if currentUserId > 0 {
+                print("👤 User logged in (ID: \(currentUserId)), loading calibration data from backend...")
+                self?.loadCalibrationData()
+            } else {
+                print("👤 No user logged in, skipping backend calibration data load")
+            }
             
             // Initialize with placeholder values
             self?.coordinates.append(Coordinates(name: "Accellerometers", x: 0, y: 0, z: 0))
@@ -375,7 +381,12 @@ class CalibrationViewModel: ObservableObject {
     
     func loadCalibrationData() {
         print("📥 Loading calibration data from backend...")
-        calibrationService.fetchCalibrationData(userId: 1) { [weak self] (accCalibration: CalibrationResult?, magCalibration: CalibrationResult?) in
+        
+        // Get current user ID from UserDefaults
+        let currentUserId = UserDefaults.standard.integer(forKey: "userId")
+        let targetUserId = currentUserId > 0 ? currentUserId : 1 // fallback to 1 if no user logged in
+        
+        calibrationService.fetchCalibrationData(userId: targetUserId) { [weak self] (accCalibration: CalibrationResult?, magCalibration: CalibrationResult?) in
             DispatchQueue.main.async {
                 if let accCal = accCalibration, let magCal = magCalibration {
                     self?.calibrationStore.setAccCalibration(accCal)
@@ -406,27 +417,17 @@ class CalibrationViewModel: ObservableObject {
     }
     
     // MARK: - Debug Methods
-    func testBLEDataReception() {
-        print("🔍 Testing BLE data reception...")
-        print("🔍 Connection status: \(bluetoothManager.getConnectionStatus())")
-        if let sensorData = bluetoothManager.currentSensorData {
-            print("🔍 Current sensor data - Acc: [\(sensorData.acc.x), \(sensorData.acc.y), \(sensorData.acc.z)]")
-            print("🔍 Current sensor data - Mag: [\(sensorData.mag.x), \(sensorData.mag.y), \(sensorData.mag.z)]")
-        } else {
-            print("🔍 No current sensor data available")
-        }
+    func debugCalibrationData() {
+        print("🔍 Debug: Testing calibration data retrieval...")
         
-        // Test data collection for 5 seconds
-        bluetoothManager.startDataCollection()
+        // Get current user ID from UserDefaults
+        let currentUserId = UserDefaults.standard.integer(forKey: "userId")
+        let targetUserId = currentUserId > 0 ? currentUserId : 1 // fallback to 1 if no user logged in
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
-            let (accSamples, magSamples) = self?.bluetoothManager.stopDataCollection() ?? ([], [])
-            print("🔍 Test results - Acc: \(accSamples.count), Mag: \(magSamples.count)")
-            if !accSamples.isEmpty {
-                print("🔍 Sample accelerometer data: \(accSamples)")
-            }
-            if !magSamples.isEmpty {
-                print("🔍 Sample magnetometer data: \(magSamples)")
+        calibrationService.debugCalibrationData(userId: targetUserId) { [weak self] (result: String) in
+            DispatchQueue.main.async {
+                print("🔍 Debug result: \(result)")
+                self?.calibrationStatus = "🔍 Debug: \(result)"
             }
         }
     }

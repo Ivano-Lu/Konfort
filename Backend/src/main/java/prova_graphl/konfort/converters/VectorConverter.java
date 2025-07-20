@@ -10,30 +10,30 @@ import java.io.IOException;
 import java.util.List;
 
 @Converter
-public class MatrixConverter implements AttributeConverter<List<List<Double>>, String> {
+public class VectorConverter implements AttributeConverter<List<Double>, String> {
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Override
-    public String convertToDatabaseColumn(List<List<Double>> attribute) {
+    public String convertToDatabaseColumn(List<Double> attribute) {
         if (attribute == null) {
             return null;
         }
         try {
             return mapper.writeValueAsString(attribute);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Could not convert matrix to JSON", e);
+            throw new RuntimeException("Could not convert vector to JSON", e);
         }
     }
 
     @Override
-    public List<List<Double>> convertToEntityAttribute(String dbData) {
+    public List<Double> convertToEntityAttribute(String dbData) {
         if (dbData == null || dbData.trim().isEmpty()) {
             return null;
         }
         try {
-            return mapper.readValue(dbData, new TypeReference<List<List<Double>>>() {});
+            return mapper.readValue(dbData, new TypeReference<List<Double>>() {});
         } catch (IOException e) {
-            throw new RuntimeException("Could not convert JSON to matrix", e);
+            throw new RuntimeException("Could not convert JSON to vector", e);
         }
     }
-}
+} 

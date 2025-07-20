@@ -437,8 +437,18 @@ class CalibrationService {
         query FetchCalibrationData($userId: ID!) {
             fetchCalibrationData(userId: $userId) {
                 id
-                accData
-                magData
+                accMatrix
+                accInvertedMatrix
+                accDeterminant
+                accVMedia
+                accSigma
+                accThreshold
+                magMatrix
+                magInvertedMatrix
+                magDeterminant
+                magVMedia
+                magSigma
+                magThreshold
             }
         }
         """
@@ -477,25 +487,68 @@ class CalibrationService {
             }
 
             do {
-                if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-                   let dataDict = json["data"] as? [String: Any],
-                   let calibData = dataDict["fetchCalibrationData"] as? [String: Any] {
-
-                    // Parse accelerometer calibration from JSON string
-                    var accCalibration: CalibrationResult?
-                    if let accDataString = calibData["accData"] as? String,
-                       let accData = accDataString.data(using: .utf8) {
-                        accCalibration = try? JSONDecoder().decode(CalibrationResult.self, from: accData)
-                    }
+                if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                    print("📦 JSON response from backend: \(json)")
                     
-                    // Parse magnetometer calibration from JSON string
-                    var magCalibration: CalibrationResult?
-                    if let magDataString = calibData["magData"] as? String,
-                       let magData = magDataString.data(using: .utf8) {
-                        magCalibration = try? JSONDecoder().decode(CalibrationResult.self, from: magData)
-                    }
+                    if let dataDict = json["data"] as? [String: Any],
+                       let calibData = dataDict["fetchCalibrationData"] as? [String: Any] {
+                        
+                        print("✅ Calibration data found in response")
+                        print("📊 Calibration data keys: \(calibData.keys)")
 
-                    completion(accCalibration, magCalibration)
+                        // Extract all calibration data from backend format
+                        guard let accMatrix = calibData["accMatrix"] as? [[Double]],
+                              let accInvertedMatrix = calibData["accInvertedMatrix"] as? [[Double]],
+                              let accDeterminant = calibData["accDeterminant"] as? Double,
+                              let magMatrix = calibData["magMatrix"] as? [[Double]],
+                              let magInvertedMatrix = calibData["magInvertedMatrix"] as? [[Double]],
+                              let magDeterminant = calibData["magDeterminant"] as? Double else {
+                            print("❌ Invalid calibration data format from backend")
+                            print("📊 Acc matrix: \(calibData["accMatrix"] ?? "nil")")
+                            print("📊 Mag matrix: \(calibData["magMatrix"] ?? "nil")")
+                            completion(nil, nil)
+                            return
+                        }
+                        
+                        // Handle optional fields with default values
+                        let accVMedia = calibData["accVMedia"] as? [Double] ?? [0.0, 0.0, 0.0]
+                        let accSigma = calibData["accSigma"] as? [Double] ?? [0.0, 0.0, 0.0]
+                        let accThreshold = calibData["accThreshold"] as? Double ?? 0.0
+                        let magVMedia = calibData["magVMedia"] as? [Double] ?? [0.0, 0.0, 0.0]
+                        let magSigma = calibData["magSigma"] as? [Double] ?? [0.0, 0.0, 0.0]
+                        let magThreshold = calibData["magThreshold"] as? Double ?? 0.0
+                        
+                        print("✅ All calibration data extracted successfully")
+                        print("📊 Acc matrix size: \(accMatrix.count), Mag matrix size: \(magMatrix.count)")
+                        
+                        // Convert to CalibrationResult format with all fields
+                        let accCalibration = CalibrationResult(
+                            vMedia: accVMedia,
+                            mCov: accMatrix,
+                            det: accDeterminant,
+                            mInv: accInvertedMatrix,
+                            sigma: accSigma,
+                            threshold: accThreshold
+                        )
+                        
+                        let magCalibration = CalibrationResult(
+                            vMedia: magVMedia,
+                            mCov: magMatrix,
+                            det: magDeterminant,
+                            mInv: magInvertedMatrix,
+                            sigma: magSigma,
+                            threshold: magThreshold
+                        )
+
+                        print("✅ CalibrationResult objects created successfully")
+                        completion(accCalibration, magCalibration)
+                    } else if let errors = json["errors"] as? [[String: Any]] {
+                        print("❌ GraphQL errors in response: \(errors)")
+                        completion(nil, nil)
+                    } else {
+                        print("❌ No calibration data or errors found in response")
+                        completion(nil, nil)
+                    }
                 } else {
                     print("❌ JSON parsing error o dati mancanti")
                     completion(nil, nil)
@@ -537,9 +590,15 @@ class CalibrationService {
                 accMatrix
                 accInvertedMatrix
                 accDeterminant
+                accVMedia
+                accSigma
+                accThreshold
                 magMatrix
                 magInvertedMatrix
                 magDeterminant
+                magVMedia
+                magSigma
+                magThreshold
             }
         }
         """
@@ -586,18 +645,30 @@ class CalibrationService {
                     let accDeterminant = calibData["accDeterminant"] as? Double ?? 0.0
                     let accMatrix = calibData["accMatrix"] as? [[Double]] ?? []
                     let accInvertedMatrix = calibData["accInvertedMatrix"] as? [[Double]] ?? []
+                    let accVMedia = calibData["accVMedia"] as? [Double] ?? [0.0, 0.0, 0.0]
+                    let accSigma = calibData["accSigma"] as? [Double] ?? [0.0, 0.0, 0.0]
+                    let accThreshold = calibData["accThreshold"] as? Double ?? 0.0
                     let magDeterminant = calibData["magDeterminant"] as? Double ?? 0.0
                     let magMatrix = calibData["magMatrix"] as? [[Double]] ?? []
                     let magInvertedMatrix = calibData["magInvertedMatrix"] as? [[Double]] ?? []
+                    let magVMedia = calibData["magVMedia"] as? [Double] ?? [0.0, 0.0, 0.0]
+                    let magSigma = calibData["magSigma"] as? [Double] ?? [0.0, 0.0, 0.0]
+                    let magThreshold = calibData["magThreshold"] as? Double ?? 0.0
 
                     let calibrationData = CalibrationDataPayload(
                         id: id,
                         accMatrix: accMatrix,
                         accInvertedMatrix: accInvertedMatrix,
                         accDeterminant: accDeterminant,
+                        accVMedia: accVMedia,
+                        accSigma: accSigma,
+                        accThreshold: accThreshold,
                         magMatrix: magMatrix,
                         magInvertedMatrix: magInvertedMatrix,
-                        magDeterminant: magDeterminant
+                        magDeterminant: magDeterminant,
+                        magVMedia: magVMedia,
+                        magSigma: magSigma,
+                        magThreshold: magThreshold
                     )
 
                     // ✅ Salva internamente nel service
@@ -627,10 +698,16 @@ class CalibrationService {
         let accMatrix = accCalibration.mCov
         let accInvertedMatrix = accCalibration.mInv
         let accDeterminant = accCalibration.det
+        let accVMedia = accCalibration.vMedia
+        let accSigma = accCalibration.sigma
+        let accThreshold = accCalibration.threshold
         
         let magMatrix = magCalibration.mCov
         let magInvertedMatrix = magCalibration.mInv
         let magDeterminant = magCalibration.det
+        let magVMedia = magCalibration.vMedia
+        let magSigma = magCalibration.sigma
+        let magThreshold = magCalibration.threshold
         
         let mutation = """
         mutation SaveCalibrationData($input: SaveCalibrationDataInput!) {
@@ -639,9 +716,15 @@ class CalibrationService {
                 accMatrix
                 accInvertedMatrix
                 accDeterminant
+                accVMedia
+                accSigma
+                accThreshold
                 magMatrix
                 magInvertedMatrix
                 magDeterminant
+                magVMedia
+                magSigma
+                magThreshold
             }
         }
         """
@@ -653,9 +736,15 @@ class CalibrationService {
                     "accMatrix": accMatrix,
                     "accInvertedMatrix": accInvertedMatrix,
                     "accDeterminant": accDeterminant,
+                    "accVMedia": accVMedia,
+                    "accSigma": accSigma,
+                    "accThreshold": accThreshold,
                     "magMatrix": magMatrix,
                     "magInvertedMatrix": magInvertedMatrix,
-                    "magDeterminant": magDeterminant
+                    "magDeterminant": magDeterminant,
+                    "magVMedia": magVMedia,
+                    "magSigma": magSigma,
+                    "magThreshold": magThreshold
                 ]
             ]
         ]
@@ -707,18 +796,30 @@ class CalibrationService {
                         let savedAccDeterminant = savedData["accDeterminant"] as? Double ?? 0.0
                         let savedAccMatrix = savedData["accMatrix"] as? [[Double]] ?? []
                         let savedAccInvertedMatrix = savedData["accInvertedMatrix"] as? [[Double]] ?? []
+                        let savedAccVMedia = savedData["accVMedia"] as? [Double] ?? [0.0, 0.0, 0.0]
+                        let savedAccSigma = savedData["accSigma"] as? [Double] ?? [0.0, 0.0, 0.0]
+                        let savedAccThreshold = savedData["accThreshold"] as? Double ?? 0.0
                         let savedMagDeterminant = savedData["magDeterminant"] as? Double ?? 0.0
                         let savedMagMatrix = savedData["magMatrix"] as? [[Double]] ?? []
                         let savedMagInvertedMatrix = savedData["magInvertedMatrix"] as? [[Double]] ?? []
+                        let savedMagVMedia = savedData["magVMedia"] as? [Double] ?? [0.0, 0.0, 0.0]
+                        let savedMagSigma = savedData["magSigma"] as? [Double] ?? [0.0, 0.0, 0.0]
+                        let savedMagThreshold = savedData["magThreshold"] as? Double ?? 0.0
                         
                         let savedCalibrationData = CalibrationDataPayload(
                             id: id,
                             accMatrix: savedAccMatrix,
                             accInvertedMatrix: savedAccInvertedMatrix,
                             accDeterminant: savedAccDeterminant,
+                            accVMedia: savedAccVMedia,
+                            accSigma: savedAccSigma,
+                            accThreshold: savedAccThreshold,
                             magMatrix: savedMagMatrix,
                             magInvertedMatrix: savedMagInvertedMatrix,
-                            magDeterminant: savedMagDeterminant
+                            magDeterminant: savedMagDeterminant,
+                            magVMedia: savedMagVMedia,
+                            magSigma: savedMagSigma,
+                            magThreshold: savedMagThreshold
                         )
                         
                         // Update internal calibration data
@@ -741,6 +842,75 @@ class CalibrationService {
             } catch {
                 print("❌ Errore parsing JSON saveCalibrationData: \(error)")
                 completion(false)
+            }
+        }.resume()
+    }
+    
+    // MARK: - Debug Methods
+    func debugCalibrationData(userId: Int, completion: @escaping (String) -> Void) {
+        print("🔍 Debug: Checking calibration data for user \(userId)...")
+        
+        let query = """
+        query DebugCalibrationData($userId: ID!) {
+            debugCalibrationData(userId: $userId)
+        }
+        """
+
+        let variables = ["userId": String(userId)]
+
+        let requestBody: [String: Any] = [
+            "query": query,
+            "variables": variables,
+            "operationName": "DebugCalibrationData"
+        ]
+
+        guard let url = URL(string: "http://172.20.10.10:8080/graphql"),
+              let httpBody = try? JSONSerialization.data(withJSONObject: requestBody) else {
+            print("❌ URL o body invalido per debug")
+            completion("❌ Invalid URL or body")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.httpBody = httpBody
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("❌ Errore richiesta debug: \(error.localizedDescription)")
+                completion("❌ Network error: \(error.localizedDescription)")
+                return
+            }
+
+            guard let data = data else {
+                print("❌ Nessun dato ricevuto per debug")
+                completion("❌ No data received")
+                return
+            }
+
+            do {
+                if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                    print("📦 Debug JSON response: \(json)")
+                    
+                    if let dataDict = json["data"] as? [String: Any],
+                       let debugResult = dataDict["debugCalibrationData"] as? String {
+                        print("✅ Debug result: \(debugResult)")
+                        completion(debugResult)
+                    } else if let errors = json["errors"] as? [[String: Any]] {
+                        print("❌ GraphQL errors in debug: \(errors)")
+                        completion("❌ GraphQL errors: \(errors)")
+                    } else {
+                        print("❌ Unexpected debug response format")
+                        completion("❌ Unexpected response format")
+                    }
+                } else {
+                    print("❌ Invalid JSON in debug response")
+                    completion("❌ Invalid JSON response")
+                }
+            } catch {
+                print("❌ Errore parsing JSON debug: \(error)")
+                completion("❌ JSON parsing error: \(error)")
             }
         }.resume()
     }

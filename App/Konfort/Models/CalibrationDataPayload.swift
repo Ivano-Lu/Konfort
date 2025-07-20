@@ -13,19 +13,31 @@ struct CalibrationDataPayload {
     let accMatrix: [[Double]]
     let accInvertedMatrix: [[Double]]
     let accDeterminant: Double
+    let accVMedia: [Double]
+    let accSigma: [Double]
+    let accThreshold: Double
     // Magnetometer calibration data
     let magMatrix: [[Double]]
     let magInvertedMatrix: [[Double]]
     let magDeterminant: Double
+    let magVMedia: [Double]
+    let magSigma: [Double]
+    let magThreshold: Double
     
-    init(id: String, accMatrix: [[Double]], accInvertedMatrix: [[Double]], accDeterminant: Double, magMatrix: [[Double]], magInvertedMatrix: [[Double]], magDeterminant: Double) {
+    init(id: String, accMatrix: [[Double]], accInvertedMatrix: [[Double]], accDeterminant: Double, accVMedia: [Double], accSigma: [Double], accThreshold: Double, magMatrix: [[Double]], magInvertedMatrix: [[Double]], magDeterminant: Double, magVMedia: [Double], magSigma: [Double], magThreshold: Double) {
         self.id = id
         self.accMatrix = accMatrix
         self.accInvertedMatrix = accInvertedMatrix
         self.accDeterminant = accDeterminant
+        self.accVMedia = accVMedia
+        self.accSigma = accSigma
+        self.accThreshold = accThreshold
         self.magMatrix = magMatrix
         self.magInvertedMatrix = magInvertedMatrix
         self.magDeterminant = magDeterminant
+        self.magVMedia = magVMedia
+        self.magSigma = magSigma
+        self.magThreshold = magThreshold
     }
 }
 

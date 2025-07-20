@@ -119,8 +119,13 @@ class LoginViewModel: ObservableObject {
                             UserDefaults.standard.set(refreshToken, forKey: "refreshToken")
                             UserDefaults.standard.set(userId, forKey: "userId")
                             
-                            // TODO: Add calibration data handling once types are properly defined
-                            print("ℹ️ Calibration data handling temporarily disabled")
+                            // Handle calibration data from login response
+                            if let calibrationData = login["calibrationData"] as? [String: Any] {
+                                print("📥 Calibration data received during login")
+                                self?.handleCalibrationDataFromLogin(calibrationData)
+                            } else {
+                                print("ℹ️ No calibration data in login response")
+                            }
                             
                             // Fetch user data
                             self?.fetchUserData(userId: userId, token: token)
@@ -143,7 +148,54 @@ class LoginViewModel: ObservableObject {
 
         task.resume()
     }
-
+    
+    private func handleCalibrationDataFromLogin(_ calibrationData: [String: Any]) {
+        print("🔄 Processing calibration data from login...")
+        
+        // Extract all calibration data from backend format
+        guard let accMatrix = calibrationData["accMatrix"] as? [[Double]],
+              let accInvertedMatrix = calibrationData["accInvertedMatrix"] as? [[Double]],
+              let accDeterminant = calibrationData["accDeterminant"] as? Double,
+              let magMatrix = calibrationData["magMatrix"] as? [[Double]],
+              let magInvertedMatrix = calibrationData["magInvertedMatrix"] as? [[Double]],
+              let magDeterminant = calibrationData["magDeterminant"] as? Double else {
+            print("❌ Invalid calibration data format from login")
+            return
+        }
+        
+        // Handle optional fields with default values
+        let accVMedia = calibrationData["accVMedia"] as? [Double] ?? [0.0, 0.0, 0.0]
+        let accSigma = calibrationData["accSigma"] as? [Double] ?? [0.0, 0.0, 0.0]
+        let accThreshold = calibrationData["accThreshold"] as? Double ?? 0.0
+        let magVMedia = calibrationData["magVMedia"] as? [Double] ?? [0.0, 0.0, 0.0]
+        let magSigma = calibrationData["magSigma"] as? [Double] ?? [0.0, 0.0, 0.0]
+        let magThreshold = calibrationData["magThreshold"] as? Double ?? 0.0
+        
+        // Convert to CalibrationResult format with all fields
+        let accCalibration = CalibrationResult(
+            vMedia: accVMedia,
+            mCov: accMatrix,
+            det: accDeterminant,
+            mInv: accInvertedMatrix,
+            sigma: accSigma,
+            threshold: accThreshold
+        )
+        
+        let magCalibration = CalibrationResult(
+            vMedia: magVMedia,
+            mCov: magMatrix,
+            det: magDeterminant,
+            mInv: magInvertedMatrix,
+            sigma: magSigma,
+            threshold: magThreshold
+        )
+        
+        // Save to calibration store
+        CalibrationDataStore.shared.setAccCalibration(accCalibration)
+        CalibrationDataStore.shared.setMagCalibration(magCalibration)
+        
+        print("✅ Calibration data loaded from login response with all fields")
+    }
     
     func tappedSignin() {
         hasTappedSignButton = true
