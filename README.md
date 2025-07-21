@@ -12,6 +12,7 @@
 - [Get Started](#get-started)
 - [Video and Presentation](#video-and-presentation)
 - [Team Members](#team-members)
+- [Contribution](#contribution)
 
 
 
@@ -290,3 +291,13 @@ Then, to configure and run each component, follow the instructions contained in 
 - Ivano Lu
     - Contributed mainly to the mobile app developement, the creation of the backend and the authentication system 
     and the implementation and adption of the posture assessment algorithms.
+
+
+
+## Contribution
+We consult the following researchs:
+- https://www.mdpi.com/1424-8220/23/22/9047#B41-sensors-23-09047
+- https://bmcmusculoskeletdisord.biomedcentral.com/articles/10.1186/s12891-019-2430-6
+- https://jneuroengrehab.biomedcentral.com/articles/10.1186/s12984-024-01322-z
+
+For the algorithm we didn't find any research who was talking about non-AI algorithm, so we devolop it with the help of the AI (chatGPT and DeepSeek), which suggest us the idea about the using of the trivariate gaussian distribution.
