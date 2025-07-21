@@ -1,0 +1,241 @@
+//--------------------------------------------------\\
+//---------- GLOBAL DATA (for each sensor) ---------\\
+//--------------------------------------------------\\
+v_media[3]
+det
+m_inv[3][3]
+sigma[3]
+threshold
+
+
+
+
+
+
+//--------------------------------------------------\\
+//---------------  DATA COMPUTATION  ---------------\\
+//--------------------------------------------------\\
+
+---INPUT---
+
+- matrice val_calib[3][N] -> matrice di N vettori da 3 elementi
+
+
+
+
+
+---BODY---
+	
+- Mean vector:
+
+	v_media[3] = [0, 0, 0];
+
+	for(int i = 0; i < N; i++) {
+		v_media += val_calib[i]		///v_media[0] += val_calib[i][0]; ecc…
+	}
+
+	v_media /= N;	(media[0] /= N; ecc…)
+
+
+
+- Covariance matrix:
+
+	m_cov[3][3] = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+
+	for(int i = 0; i < N; i++) {
+		v_diff[3] = val_calib[i] - v_media	///v_diff[0] =  val_calib[i][0] - v_media[0]; ecc…
+
+		m_temp[3][3];
+		for(int j = 0; j < 3; j++) {
+			for(int k = 0; k < 3; k++) {
+				m_temp[j][k] = v_diff[j] * v_diff[k];	///praticamente [[x*x, x*y, x*z], [y*x, y*y, y*z], [z*x, z*y, z*z]]
+			}
+		}
+
+		m_cov += m_temp		///m_cov[0][0] += m_temp[0][0]; ecc…
+	}
+
+	m_cov /= (N-1);	(media[0] /= N; ecc…)
+
+
+
+- Matrix's determinant:
+
+	det =  m_cov[0][0] * (m_cov[1][1]*m_cov[2][2] - m_cov[1][2]*m_cov[2][1])
+             - m_cov[0][1] * (m_cov[1][0]*m_cov[2][2] - m_cov[1][2]*m_cov[2][0])
+             + m_cov[0][2] * (m_cov[1][0]*m_cov[2][1] - m_cov[1][1]*m_cov[2][0]);
+
+
+
+- Inverse matrix:
+
+	""CODE FOR COMPUTATION""
+	
+	m_inv[3][3];
+
+
+- Eigenvector and eingenvalues 
+
+	""CODE FOR COMPUTATION""
+
+	ax, vx[3] -> eingenvalues and eigenvector of coordinate x
+	ay, vy[3] -> eingenvalues and eigenvector of coordinate y
+	az, vz[3] -> eingenvalues and eigenvector of coordinate z
+
+	The matrix is symmetric by construction -> all eigenvectors will have zero values except the one corresponding to the coordinate. Therefore, for each eigenvector vj, it is possible to maintain the single value "sj".
+	We obtain 6 values -> ax, sx, ay, sy, az, sz
+
+
+
+- sigma vector (𝛿), use to calculate threshold:
+
+	sigma_x = sx * √(7.8147 * ax);
+	sigma_y = sy * √(7.8147 * ay);
+	sigma_z = sz * √(7.8147 * az);
+	
+	sigma[3] = [sigma_x, sigma_y, sigma_z]
+
+
+
+
+
+
+//--------------------------------------------------\\
+//---------------- DENSITY FUNCTION ----------------\\
+//--------------------------------------------------\\
+
+N(val[3]) { 
+	N(val[3], v_media[3], det, m_inv[3][3]);
+}
+//following, we put the definition on the internal function below.
+//the evaluation function is the same for both sensors, but each sensor will have its personal "statistics data", derived from the calibration data of that sensor
+
+
+
+
+
+---INPUT---
+
+- val[3]: acctual values red from the sensor
+- v_media[3]: mean vector of the corresponding sensor
+
+- det: determinant of the corresponding sensor
+- m_inv[3][3]: inverse matrix of the corresponding sensor
+
+
+
+
+
+---BODY---
+
+- Compute distance vector from the mean vector:
+
+	v_diff[3] = val[i] - v_media	///v_diff[0] =  val[0] - v_media[0]; ecc…
+
+
+
+- Calculate the exponent present in the function (-1/2 * v_diff^T * m_inv * v_diff):
+
+	tmp[3] = [0, 0, 0];
+
+	for(int i = 0; i < 3; i++) {
+		for(int j = 0; j < 3; j++) {
+			tmp[i] += m_inv[i][j] * v_diff[j];
+		}
+	}
+
+	exponent = 0;
+
+   	for(int i = 0; i < 3; i++) {
+		exponent += v_diff[i] * tmp[i];
+	}
+
+
+	exponent *= -0.5;
+
+
+
+- Compute return value (density):
+
+	ret = (2 * π)^(-3/2) * det^(-1/2) * e^exponent
+
+
+
+
+
+
+---OUTPUT---
+
+- ret: density/function result
+
+
+
+
+
+
+//--------------------------------------------------\\
+//------------------- THRESHOLD --------------------\\
+//--------------------------------------------------\\
+
+threshold 𝜏  = 𝒩(𝜇+𝛿)
+
+- body:
+	
+	vet[3] = sigma + v_media;		//vet[0] = sigma[0] + v_media[0]
+
+	threshold = N(vet[3], v_media[3], det, m_inv[3][3]);
+
+
+//A threshold must be calculated for each sensor, and therefore obviously, sigma, v_media, det and m_inv are those of the respective sensor
+
+
+
+
+
+
+//--------------------------------------------------\\
+//------------- TEST POSTURA CORRETTA --------------\\
+//--------------------------------------------------\\
+
+
+For the posture to be incorrect, both sensors must give incorrect posture (value lower than the threshold)
+
+
+
+---INPUT---
+
+- v_acc[3]: accelerometer values read
+- v_mag[3]: magnetometer values read
+
+- res_acc: func res applied to accelerometer
+- res_mag: func res applied to magnetometer
+
+- t_acc: accelerometer threshold
+- t_mag: magnetometer threshold
+
+
+
+
+
+---BODY---
+
+- Compute N(x):
+
+	res_acc = N(v_acc[3]);
+	 = N(v_mag[3]);
+
+
+
+- Posture evaluation:
+
+	if(res_acc < t_acc && res_mag < t_mag) {	//both indicate bad posture
+		BAD POSTURE
+	}
+	else {	//at least one sensor indicate good posture
+		GOOD POSTURE
+	}
+
+
+
+
+
